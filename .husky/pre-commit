@@ -1,4 +1,3 @@
-# Lade fnm nur, wenn es installiert ist und im PATH gefunden wird
 if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env)"
   fnm use
