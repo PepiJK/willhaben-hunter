@@ -2,10 +2,13 @@
  * Command Line Interface parser and router.
  */
 import { Command, Option } from "commander";
-import pc from "picocolors";
-import ora from "ora";
 import { prompt } from "enquirer";
-import { scrapeWillhaben, Area, ScrapeOptions } from "../scraper";
+import ora from "ora";
+import pc from "picocolors";
+import { exportToCsv } from "../exporter/csv";
+import * as fs from "fs";
+import * as path from "path";
+import { Area, ScrapeOptions, scrapeWillhaben, ViennaDistrict } from "../scraper";
 
 /**
  * Initializes and runs the CLI commands.
@@ -36,9 +39,15 @@ export async function runCLI(argv: string[]): Promise<void> {
 					return prev ? prev.concat([lower]) : [lower];
 				}),
 		)
+		.addOption(
+			new Option(
+				"--wien-districts <districts...>",
+				"Vienna districts to search in if Wien is selected.",
+			).choices(Object.values(ViennaDistrict)),
+		)
 		.option("-l, --limit <number>", "Maximum number of items to scrape", parseInt)
 		.action(async (options) => {
-			let { query, priceMin, priceMax, area, limit } = options;
+			let { query, priceMin, priceMax, area, limit, wienDistricts } = options;
 
 			if (process.stdin.isTTY) {
 				const steps = [];
@@ -89,6 +98,23 @@ export async function runCLI(argv: string[]): Promise<void> {
 								initial: area || [],
 							});
 							area = a && a.length > 0 ? (a as Area[]) : undefined;
+
+							// If Wien is selected, we prompt for districts next
+							if (area && area.includes(Area.WIEN) && !options.wienDistricts) {
+								if (!steps.includes("wienDistricts")) {
+									steps.splice(currentStepIndex + 1, 0, "wienDistricts");
+								}
+							}
+						} else if (step === "wienDistricts") {
+							const { wd } = await prompt<{ wd: string[] }>({
+								type: "multiselect",
+								name: "wd",
+								message: "Select Vienna districts (or none for all of Vienna):",
+								choices: Object.values(ViennaDistrict),
+								initial: wienDistricts || [],
+							});
+							wienDistricts =
+								wd && wd.length > 0 ? (wd as ViennaDistrict[]) : undefined;
 						} else if (step === "limit") {
 							const { l } = await prompt<{ l: string }>({
 								type: "input",
@@ -120,6 +146,7 @@ export async function runCLI(argv: string[]): Promise<void> {
 				}
 			}
 
+			const startTime = performance.now();
 			const spinner = ora(pc.blue(`Searching willhaben for: ${query}`)).start();
 			try {
 				// Call scraper logic
@@ -128,11 +155,31 @@ export async function runCLI(argv: string[]): Promise<void> {
 				if (priceMin !== undefined && !isNaN(priceMin)) scrapeOptions.priceMin = priceMin;
 				if (priceMax !== undefined && !isNaN(priceMax)) scrapeOptions.priceMax = priceMax;
 				if (area !== undefined) scrapeOptions.area = area as Area[];
+				if (wienDistricts !== undefined)
+					scrapeOptions.wienDistricts = wienDistricts as ViennaDistrict[];
 
 				const results = await scrapeWillhaben(scrapeOptions);
 				spinner.succeed(pc.green(`Successfully scraped ${results.length} items!`));
 
-				// TODO: call CSV export logic here
+				if (results.length > 0) {
+					const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+					// Ensure output directory exists
+					const outputDir = path.join(process.cwd(), "output");
+					if (!fs.existsSync(outputDir)) {
+						fs.mkdirSync(outputDir, { recursive: true });
+					}
+
+					const filename = path.join("output", `willhaben-results-${timestamp}.csv`);
+					await exportToCsv(results, filename);
+					console.log(pc.green(`Results exported to ${filename}`));
+				} else {
+					console.log(pc.yellow("No results found to export."));
+				}
+
+				const endTime = performance.now();
+				const elapsed = ((endTime - startTime) / 1000).toFixed(2);
+				console.log(pc.cyan(`\n⏱️  Total execution time: ${elapsed} seconds`));
 			} catch (error) {
 				spinner.fail(pc.red("Failed to scrape willhaben."));
 				if (error instanceof Error) {

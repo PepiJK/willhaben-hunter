@@ -46,6 +46,10 @@
 6. **Development Practices:**
     - Use ESLint and Prettier for code formatting and linting.
     - Write tests first for every feature/bugfix before implementation.
+    - **Testing Rules:**
+        - All tests must be placed in the `tests/` directory. Do not place test scripts in the root directory.
+        - Test files must use the `.test.ts` extension (e.g. `tests/scraper.e2e.test.ts`).
+        - Use the `vitest` framework for writing tests (e.g., `import { describe, it, expect } from "vitest"`).
     - **Verification:** After every feature, bugfix, or major code change, YOU MUST verify the codebase by running the following commands:
         1. `npm run lint` (Ensures there are no logic/formatting errors)
         2. `npm test` (Ensures all vitest unit tests pass)
