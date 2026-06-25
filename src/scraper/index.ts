@@ -18,13 +18,38 @@ export interface WillhabenItem {
 }
 
 /**
+ * Enum representing all Austrian areas (Bundesländer).
+ */
+export enum Area {
+	WIEN = "wien",
+	NIEDEROESTERREICH = "niederösterreich",
+	OBEROESTERREICH = "oberösterreich",
+	SALZBURG = "salzburg",
+	TIROL = "tirol",
+	VORARLBERG = "vorarlberg",
+	KAERNTEN = "kärnten",
+	STEIERMARK = "steiermark",
+	BURGENLAND = "burgenland",
+}
+
+/**
+ * Options for scraping willhaben.
+ */
+export interface ScrapeOptions {
+	query: string;
+	limit?: number;
+	priceMin?: number;
+	priceMax?: number;
+	area?: Area[];
+}
+
+/**
  * Scrapes willhaben.at for a specific query.
  *
- * @param query - The search term to look for.
- * @param limit - The maximum number of items to retrieve.
+ * @param options - The scrape options to use.
  * @returns An array of Willhaben items.
  */
-export async function scrapeWillhaben(query: string, limit: number): Promise<WillhabenItem[]> {
+export async function scrapeWillhaben(options: ScrapeOptions): Promise<WillhabenItem[]> {
 	// Launch browser in headless mode
 	const browser = await chromium.launch({ headless: true });
 
@@ -33,11 +58,10 @@ export async function scrapeWillhaben(query: string, limit: number): Promise<Wil
 
 		// This is a placeholder structure
 		// In the future we will navigate to willhaben.at and parse the DOM
-		const searchUrl = `https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz?keyword=${encodeURIComponent(query)}`;
+		const searchUrl = `https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz?keyword=${encodeURIComponent(options.query)}`;
 		await page.goto(searchUrl, { waitUntil: "domcontentloaded" });
 
 		// TODO: Implement actual DOM parsing logic
-		console.log(`Will scrape up to ${limit} items`);
 
 		// Dummy data for now
 		const dummyData: WillhabenItem[] = [];

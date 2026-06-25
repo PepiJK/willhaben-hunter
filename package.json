@@ -17,6 +17,7 @@
 	"dependencies": {
 		"commander": "^15.0.0",
 		"csv-writer": "^1.6.0",
+		"enquirer": "^2.4.1",
 		"ora": "^5.4.1",
 		"picocolors": "^1.1.1",
 		"playwright": "^1.61.1",

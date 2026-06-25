@@ -5,7 +5,7 @@
 - **Type:** Modern CLI Application
 - **Runtime:** Node.js (LTS version)
 - **Language:** TypeScript
-- **CLI Framework:** `commander`
+- **CLI Framework:** `commander`, `enquirer`
 - **CLI UX:** `ora` (spinners) and `picocolors` (colors)
 - **Web Scraping:** `playwright` + `playwright-extra` + `puppeteer-extra-plugin-stealth`
 - **CSV Export:** `csv-writer`
