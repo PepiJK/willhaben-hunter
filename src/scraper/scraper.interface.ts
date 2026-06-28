@@ -1,0 +1,26 @@
+import { Area, ViennaDistrict } from "./scraper.const";
+
+/**
+ * Interface representing a scraped item from willhaben.
+ */
+export interface WillhabenItem {
+	id: string;
+	title: string;
+	price: string;
+	url: string;
+}
+
+export type ProgressCallback = (message: string) => void;
+
+/**
+ * Options for scraping willhaben.
+ */
+export interface ScrapeOptions {
+	query: string;
+	limit?: number;
+	priceMin?: number;
+	priceMax?: number;
+	area?: Area[];
+	wienDistricts?: ViennaDistrict[];
+	onProgress?: ProgressCallback;
+}

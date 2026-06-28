@@ -1,34 +1,40 @@
-import { describe, it, expect } from "vitest";
-import { Area, ViennaDistrict, buildWillhabenUrl } from "../src/scraper";
+import { describe, expect, it } from "vitest";
+import { WillhabenScraper } from "../src/scraper/scraper";
+import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
 
 describe("URL Builder Suite", () => {
 	it("should build a basic url with only a keyword", () => {
-		const url = buildWillhabenUrl({ query: "iphone" });
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "iphone" });
 		expect(url).toBe(
 			"https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz?keyword=iphone&isNavigation=true",
 		);
 	});
 
 	it("should include min and max prices", () => {
-		const url = buildWillhabenUrl({ query: "macbook", priceMin: 500, priceMax: 1500 });
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "macbook", priceMin: 500, priceMax: 1500 });
 		expect(url).toContain("PRICE_FROM=500");
 		expect(url).toContain("PRICE_TO=1500");
 	});
 
 	it("should include standard area IDs", () => {
-		const url = buildWillhabenUrl({ query: "bike", area: [Area.TIROL, Area.SALZBURG] });
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "bike", area: [Area.TIROL, Area.SALZBURG] });
 		// Tirol is 7, Salzburg is 5
 		expect(url).toContain("areaId=7");
 		expect(url).toContain("areaId=5");
 	});
 
 	it("should include generic Wien area ID if no districts are specified", () => {
-		const url = buildWillhabenUrl({ query: "desk", area: [Area.WIEN] });
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "desk", area: [Area.WIEN] });
 		expect(url).toContain("areaId=900");
 	});
 
 	it("should include specific Vienna district IDs and exclude generic Wien ID", () => {
-		const url = buildWillhabenUrl({
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({
 			query: "chair",
 			area: [Area.WIEN],
 			wienDistricts: [ViennaDistrict.INNERE_STADT, ViennaDistrict.LIESING],

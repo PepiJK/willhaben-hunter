@@ -1,10 +1,11 @@
 /**
  * Entry point for the Willhaben Hunter CLI application.
  */
-import { runCLI } from "./cli";
+import { CliApp } from "./cli/cli";
 
 // Execute the CLI
-runCLI(process.argv).catch((error) => {
+const app = new CliApp();
+app.run(process.argv).catch((error) => {
 	console.error("Fatal Error:", error);
 	process.exit(1);
 });

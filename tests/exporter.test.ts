@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { exportToCsv } from "../src/exporter/csv";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { CsvExporter } from "../src/exporter/csv-exporter";
 
 vi.mock("fs", async () => {
 	const actual = await vi.importActual("fs");
@@ -12,7 +12,6 @@ vi.mock("fs", async () => {
 });
 
 // Since csv-writer uses fs internally, we mock its createObjectCsvWriter directly or just check if it doesn't throw.
-// Actually, it's safer to mock csv-writer.
 vi.mock("csv-writer", () => {
 	return {
 		createObjectCsvWriter: vi.fn().mockReturnValue({
@@ -33,6 +32,6 @@ describe("Exporter Suite", () => {
 		];
 
 		// We just ensure calling it doesn't throw and resolves successfully
-		await expect(exportToCsv(items, "test.csv")).resolves.toBeUndefined();
+		await expect(CsvExporter.export(items, "test.csv")).resolves.toBeUndefined();
 	});
 });
