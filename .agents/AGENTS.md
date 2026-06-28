@@ -1,7 +1,7 @@
 # Willhaben Hunter
 
 **Target:** Node.js/TypeScript CLI web scraper for `willhaben.at` items. Exports data to `.csv` for LLM analysis.
-**Stack:** `commander`, `enquirer`, `ora`, `picocolors`, `playwright-extra` (with `stealth` plugin), `csv-writer`, `vitest`.
+**Stack:** `commander`, `@inquirer/prompts`, `ora`, `picocolors`, `playwright-extra` (with `stealth` plugin), `csv-writer`, `vitest`.
 
 ## Rules & Guidelines
 

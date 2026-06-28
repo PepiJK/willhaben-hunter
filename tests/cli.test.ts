@@ -1,10 +1,11 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach, Mock } from "vitest";
 import { CliApp } from "../src/cli/cli";
-import * as enquirer from "enquirer";
+import * as inquirerPrompts from "@inquirer/prompts";
 import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
 
-vi.mock("enquirer", () => ({
-	prompt: vi.fn(),
+vi.mock("@inquirer/prompts", () => ({
+	input: vi.fn(),
+	checkbox: vi.fn(),
 }));
 
 describe("CliApp - Interactive Prompts & Inputs", () => {
@@ -21,16 +22,18 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 	});
 
 	it("should prompt for all missing inputs and parse them correctly", async () => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const promptMock = enquirer.prompt as any;
+		const inputMock = inquirerPrompts.input as Mock;
+		const checkboxMock = inquirerPrompts.checkbox as Mock;
 
-		promptMock
-			.mockResolvedValueOnce({ q: "iphone" }) // query
-			.mockResolvedValueOnce({ pMin: "100" }) // priceMin
-			.mockResolvedValueOnce({ pMax: "500" }) // priceMax
-			.mockResolvedValueOnce({ a: [Area.WIEN] }) // area
-			.mockResolvedValueOnce({ wd: [ViennaDistrict.INNERE_STADT] }) // wienDistricts
-			.mockResolvedValueOnce({ l: "10" }); // limit
+		inputMock
+			.mockResolvedValueOnce("iphone") // query
+			.mockResolvedValueOnce("100") // priceMin
+			.mockResolvedValueOnce("500") // priceMax
+			.mockResolvedValueOnce("10"); // limit
+
+		checkboxMock
+			.mockResolvedValueOnce([Area.WIEN]) // area
+			.mockResolvedValueOnce([ViennaDistrict.INNERE_STADT]); // wienDistricts
 
 		const result = await app._handleInteractivePrompts({});
 
@@ -51,7 +54,8 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 			limit: 5,
 		});
 
-		expect(enquirer.prompt).not.toHaveBeenCalled();
+		expect(inquirerPrompts.input).not.toHaveBeenCalled();
+		expect(inquirerPrompts.checkbox).not.toHaveBeenCalled();
 		expect(result.query).toBe("macbook");
 		expect(result.priceMin).toBe(200);
 		expect(result.priceMax).toBe(1000);
@@ -61,15 +65,16 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 	});
 
 	it("should handle empty/skipped inputs gracefully", async () => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const promptMock = enquirer.prompt as any;
+		const inputMock = inquirerPrompts.input as Mock;
+		const checkboxMock = inquirerPrompts.checkbox as Mock;
 
-		promptMock
-			.mockResolvedValueOnce({ q: "laufband" }) // query
-			.mockResolvedValueOnce({ pMin: "" }) // empty priceMin
-			.mockResolvedValueOnce({ pMax: "   " }) // empty priceMax
-			.mockResolvedValueOnce({ a: [] }) // empty area
-			.mockResolvedValueOnce({ l: "" }); // empty limit
+		inputMock
+			.mockResolvedValueOnce("laufband") // query
+			.mockResolvedValueOnce("") // empty priceMin
+			.mockResolvedValueOnce("   ") // empty priceMax
+			.mockResolvedValueOnce(""); // empty limit
+
+		checkboxMock.mockResolvedValueOnce([]); // empty area
 
 		const result = await app._handleInteractivePrompts({});
 
@@ -82,22 +87,25 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 	});
 
 	it("should prompt for Vienna districts only if Wien is selected as area", async () => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const promptMock = enquirer.prompt as any;
+		const inputMock = inquirerPrompts.input as Mock;
+		const checkboxMock = inquirerPrompts.checkbox as Mock;
 
-		promptMock
-			.mockResolvedValueOnce({ q: "fahrrad" }) // query
-			.mockResolvedValueOnce({ pMin: "" })
-			.mockResolvedValueOnce({ pMax: "" })
-			.mockResolvedValueOnce({ a: [Area.WIEN] }) // area is Wien
-			.mockResolvedValueOnce({ wd: [] }) // User skipped specific districts
-			.mockResolvedValueOnce({ l: "" });
+		inputMock
+			.mockResolvedValueOnce("fahrrad") // query
+			.mockResolvedValueOnce("")
+			.mockResolvedValueOnce("")
+			.mockResolvedValueOnce("");
+
+		checkboxMock
+			.mockResolvedValueOnce([Area.WIEN]) // area is Wien
+			.mockResolvedValueOnce([]); // User skipped specific districts
 
 		const result = await app._handleInteractivePrompts({});
 
 		expect(result.area).toEqual([Area.WIEN]);
 		expect(result.wienDistricts).toBeUndefined(); // empty selection converts to undefined
-		expect(promptMock).toHaveBeenCalledTimes(6); // including the wien district prompt
+		expect(inputMock).toHaveBeenCalledTimes(4);
+		expect(checkboxMock).toHaveBeenCalledTimes(2);
 	});
 
 	it("should bypass prompts and use strict options when not in TTY environment", async () => {

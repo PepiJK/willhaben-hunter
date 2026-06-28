@@ -2,7 +2,7 @@
  * Command Line Interface parser and router.
  */
 import { Command, Option } from "commander";
-import { prompt } from "enquirer";
+import { checkbox, input } from "@inquirer/prompts";
 import * as fs from "fs";
 import ora from "ora";
 import * as path from "path";
@@ -124,11 +124,9 @@ export class CliApp {
 			try {
 				switch (step) {
 					case CliPromptStep.QUERY: {
-						const { q } = await prompt<{ q: string }>({
-							type: "input",
-							name: "q",
+						const q = await input({
 							message: "Enter the item to search for:",
-							initial: query || "",
+							default: query || "",
 							validate: (val: string) =>
 								val.trim().length > 0 || "Search query is required",
 						});
@@ -136,43 +134,31 @@ export class CliApp {
 						break;
 					}
 					case CliPromptStep.PRICE_MIN: {
-						const { pMin } = await prompt<{ pMin: string }>({
-							type: "input",
-							name: "pMin",
+						const pMin = await input({
 							message: "Enter minimum price (or press enter to skip):",
-							initial: priceMin?.toString() || "",
-							format: (val: string) => (val ? val : pc.gray("Kein Limit")),
+							default: priceMin?.toString() || "",
 						});
 						priceMin = pMin.trim() ? parseFloat(pMin) : undefined;
 						break;
 					}
 					case CliPromptStep.PRICE_MAX: {
-						const { pMax } = await prompt<{ pMax: string }>({
-							type: "input",
-							name: "pMax",
+						const pMax = await input({
 							message: "Enter maximum price (or press enter to skip):",
-							initial: priceMax?.toString() || "",
-							format: (val: string) => (val ? val : pc.gray("Kein Limit")),
+							default: priceMax?.toString() || "",
 						});
 						priceMax = pMax.trim() ? parseFloat(pMax) : undefined;
 						break;
 					}
 					case CliPromptStep.AREA: {
-						const options = {
-							type: "multiselect" as const,
-							name: "a",
+						const a = await checkbox({
 							message:
 								"Select areas to search in (use space to select, enter to confirm):",
-							choices: Object.values(Area),
-						};
-						Object.assign(options, {
-							initial: area || [],
-							format: (values: string[] | undefined) =>
-								values && values.length > 0
-									? values.join(", ")
-									: pc.gray("Alle Gebiete"),
+							choices: Object.values(Area).map((val) => ({
+								name: val,
+								value: val,
+								checked: area?.includes(val as Area) || false,
+							})),
 						});
-						const { a } = await prompt<{ a: string[] }>(options);
 						area = a && a.length > 0 ? (a as Area[]) : undefined;
 
 						// If Wien is selected, we prompt for districts next
@@ -184,44 +170,35 @@ export class CliApp {
 						break;
 					}
 					case CliPromptStep.WIEN_DISTRICTS: {
-						const options = {
-							type: "multiselect" as const,
-							name: "wd",
+						const wd = await checkbox({
 							message: "Select Vienna districts (or none for all of Vienna):",
-							choices: Object.values(ViennaDistrict),
-						};
-						Object.assign(options, {
-							initial: wienDistricts || [],
-							format: (values: string[] | undefined) =>
-								values && values.length > 0
-									? values.join(", ")
-									: pc.gray("Alle Bezirke"),
+							choices: Object.values(ViennaDistrict).map((val) => ({
+								name: val,
+								value: val,
+								checked: wienDistricts?.includes(val as ViennaDistrict) || false,
+							})),
 						});
-						const { wd } = await prompt<{ wd: string[] }>(options);
 						wienDistricts = wd && wd.length > 0 ? (wd as ViennaDistrict[]) : undefined;
 						break;
 					}
 					case CliPromptStep.LIMIT: {
-						const { l } = await prompt<{ l: string }>({
-							type: "input",
-							name: "l",
+						const l = await input({
 							message: "Enter maximum items to scrape (or press enter to skip):",
-							initial: limit?.toString() || "",
-							format: (val: string) => (val ? val : pc.gray("Unbegrenzt")),
+							default: limit?.toString() || "",
 						});
 						limit = l.trim() ? parseInt(l, 10) : undefined;
 						break;
 					}
 				}
 				currentStepIndex++;
-			} catch (err) {
-				if (err === "") {
-					// Escape was pressed
-					currentStepIndex--;
-					if (currentStepIndex < 0) {
-						console.error(pc.yellow("Aborted by user."));
-						process.exit(0);
-					}
+			} catch (err: unknown) {
+				if (err instanceof Error && err.name === "ExitPromptError") {
+					console.error(pc.yellow("Aborted by user."));
+					process.exit(0);
+				} else if (err === "") {
+					// Fallback for unexpected empty throw
+					console.error(pc.yellow("Aborted by user."));
+					process.exit(0);
 				} else {
 					console.error(pc.red("Prompt error:"), err);
 					process.exit(1);
