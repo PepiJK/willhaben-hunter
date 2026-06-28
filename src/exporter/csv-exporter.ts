@@ -22,6 +22,8 @@ export class CsvExporter {
 				{ id: "title", title: "TITLE" },
 				{ id: "price", title: "PRICE" },
 				{ id: "url", title: "URL" },
+				{ id: "description", title: "DESCRIPTION" },
+				{ id: "attributes", title: "ATTRIBUTES" },
 			],
 		});
 

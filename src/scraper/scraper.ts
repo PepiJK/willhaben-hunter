@@ -1,7 +1,7 @@
 /**
  * Web scraping module using Playwright and Stealth plugin.
  */
-import { Browser } from "playwright";
+import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
 import { chunkArray } from "../utils/utils";
@@ -69,7 +69,7 @@ export class WillhabenScraper {
 				}
 
 				// Chunk fetching to max 3 concurrent pages
-				const CONCURRENCY_LIMIT = 3;
+				const CONCURRENCY_LIMIT = 10;
 				const chunks = chunkArray(remainingPages, CONCURRENCY_LIMIT);
 
 				for (const chunk of chunks) {
@@ -98,9 +98,44 @@ export class WillhabenScraper {
 				}
 			}
 
+			// Filter items by query (case insensitive)
+			const queryLower = options.query.toLowerCase();
+			allItems = allItems.filter((item) => item.title.toLowerCase().includes(queryLower));
+
 			// Apply final limit if needed
 			if (options.limit !== undefined && allItems.length > options.limit) {
 				allItems = allItems.slice(0, options.limit);
+			}
+
+			// Fetch detail pages in parallel chunks
+			if (allItems.length > 0) {
+				if (options.onProgress) {
+					options.onProgress(`Fetching details for ${allItems.length} items...`);
+				}
+
+				const DETAIL_CONCURRENCY = 10;
+				const detailChunks = chunkArray(allItems, DETAIL_CONCURRENCY);
+
+				let processedCount = 0;
+				for (const chunk of detailChunks) {
+					const promises = chunk.map(async (item) => {
+						if (!item.url) return;
+						const details = await this._scrapeItemDetails(browser, item.url);
+						item.description = details.description;
+						item.attributes = details.attributes;
+					});
+					await Promise.all(promises);
+					processedCount += chunk.length;
+
+					if (options.onProgress) {
+						options.onProgress(
+							`Fetching details... (${processedCount}/${allItems.length})`,
+						);
+					}
+
+					// Small delay to be polite
+					await new Promise((resolve) => setTimeout(resolve, 500));
+				}
 			}
 
 			return allItems;
@@ -163,11 +198,7 @@ export class WillhabenScraper {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
 
 			// Try to accept didomi cookie notice to avoid overlay blocking
-			try {
-				await page.click('button[id="didomi-notice-agree-button"]', { timeout: 2000 });
-			} catch {
-				// ignore if not present
-			}
+			await this._acceptCookiesIfPresent(page);
 
 			await page.waitForTimeout(200);
 
@@ -250,5 +281,90 @@ export class WillhabenScraper {
 			return 117223 + num - 1;
 		}
 		return 900; // fallback to generic Wien
+	}
+
+	/**
+	 * Scrapes the detail page of a single item.
+	 *
+	 * @param browser - The Playwright browser instance.
+	 * @param url - The URL of the item.
+	 * @returns An object containing the description and attributes.
+	 */
+	private async _scrapeItemDetails(
+		browser: Browser,
+		url: string,
+	): Promise<{ description: string; attributes: string }> {
+		const page = await browser.newPage();
+		try {
+			await page.goto(url, { waitUntil: "domcontentloaded" });
+
+			// Accept cookies if present
+			await this._acceptCookiesIfPresent(page);
+
+			const details = await page.evaluate(() => {
+				let description = "";
+				let attributes = "";
+
+				// Attempt to find standard description block
+				const descEl = document.querySelector('[data-testid^="ad-description-"]');
+				if (descEl) {
+					description = (descEl as HTMLElement).innerText.trim();
+				} else {
+					// Fallback for description: try finding content by class or main content
+					const possibleDesc = document.querySelector(
+						'div[class*="description"], p[class*="description"]',
+					);
+					if (possibleDesc) {
+						description = (possibleDesc as HTMLElement).innerText.trim();
+					}
+				}
+
+				// Attempt to find standard attributes block
+				const attrEls = document.querySelectorAll('[data-testid="attribute-item"]');
+				if (attrEls.length > 0) {
+					const attrTexts = Array.from(attrEls)
+						.map((el) => {
+							const titleEl = el.querySelector('[data-testid="attribute-title"]');
+							const valEl = el.querySelector('[data-testid="attribute-value"]');
+							if (titleEl && valEl) {
+								return `${(titleEl as HTMLElement).innerText.trim()}: ${(valEl as HTMLElement).innerText.trim()}`;
+							}
+							return (el as HTMLElement).innerText.trim().replace(/\n/g, ": ");
+						})
+						.filter((t) => t.length > 0);
+					attributes = attrTexts.join(" | ");
+				} else {
+					// Fallback
+					const attrBlock = document.querySelector('[data-testid="ad-attributes"]');
+					if (attrBlock) {
+						attributes = (attrBlock as HTMLElement).innerText
+							.replace(/\n/g, " | ")
+							.trim();
+					}
+				}
+
+				return { description, attributes };
+			});
+
+			return details;
+		} catch {
+			// Fail gracefully for individual items
+			return { description: "", attributes: "" };
+		} finally {
+			await page.close();
+		}
+	}
+
+	/**
+	 * Helper to accept cookies if the notice overlay is present.
+	 *
+	 * @param page - The Playwright page instance.
+	 */
+	private async _acceptCookiesIfPresent(page: Page): Promise<void> {
+		try {
+			await page.click('button[id="didomi-notice-agree-button"]', { timeout: 2000 });
+		} catch {
+			// ignore if not present
+		}
 	}
 }

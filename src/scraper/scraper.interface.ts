@@ -8,6 +8,8 @@ export interface WillhabenItem {
 	title: string;
 	price: string;
 	url: string;
+	description?: string;
+	attributes?: string;
 }
 
 export type ProgressCallback = (message: string) => void;
