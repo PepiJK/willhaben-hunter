@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach, Mock } from "vitest";
-import { CliApp } from "../src/cli/cli";
 import * as inquirerPrompts from "@inquirer/prompts";
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
+import { CliApp } from "../src/cli/cli";
 import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
 
 vi.mock("@inquirer/prompts", () => ({
@@ -119,8 +119,8 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 		});
 
 		afterEach(() => {
-			process.stdin.isTTY = originalStdinTTY;
-			process.stdout.isTTY = originalStdoutTTY;
+			process.stdin.isTTY = !!originalStdinTTY;
+			process.stdout.isTTY = !!originalStdoutTTY;
 		});
 
 		it("should use interactive mode when both stdin and stdout are TTYs", async () => {

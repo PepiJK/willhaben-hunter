@@ -1,6 +1,3 @@
-/**
- * CSV Exporter module to write scraped data to a file or stdout.
- */
 import * as fs from "fs";
 import * as path from "path";
 import { createObjectCsvStringifier, createObjectCsvWriter } from "csv-writer";

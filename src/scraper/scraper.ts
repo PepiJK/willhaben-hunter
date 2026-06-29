@@ -1,10 +1,8 @@
-/**
- * Web scraping module using Playwright and Stealth plugin.
- */
 import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
 import { chunkArray } from "../utils/utils";
+import { CONCURRENCY_LIMIT, DETAIL_CONCURRENCY, ITEMS_PER_PAGE } from "../app.const";
 import { Area, areaIdMap, sortParamMap, ViennaDistrict } from "./scraper.const";
 import { ScrapeOptions, WillhabenItem } from "./scraper.interface";
 
@@ -50,7 +48,6 @@ export class WillhabenScraper {
 			}
 
 			// Willhaben generally shows ~30 items per page
-			const ITEMS_PER_PAGE = 30;
 			const totalAvailablePages = Math.ceil(totalResults / ITEMS_PER_PAGE);
 
 			let pagesToFetch = totalAvailablePages;
@@ -68,8 +65,7 @@ export class WillhabenScraper {
 					remainingPages.push(p);
 				}
 
-				// Chunk fetching to max 3 concurrent pages
-				const CONCURRENCY_LIMIT = 10;
+				// Chunk fetching to max concurrent pages
 				const chunks = chunkArray(remainingPages, CONCURRENCY_LIMIT);
 
 				for (const chunk of chunks) {
@@ -113,7 +109,6 @@ export class WillhabenScraper {
 					options.onProgress(`Fetching details for ${allItems.length} items...`);
 				}
 
-				const DETAIL_CONCURRENCY = 10;
 				const detailChunks = chunkArray(allItems, DETAIL_CONCURRENCY);
 
 				let processedCount = 0;
@@ -203,10 +198,7 @@ export class WillhabenScraper {
 		const page = await browser.newPage();
 		try {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
-
-			// Try to accept didomi cookie notice to avoid overlay blocking
 			await this._acceptCookiesIfPresent(page);
-
 			await page.waitForTimeout(200);
 
 			// Smooth scroll down to force lazy load of all items
@@ -304,8 +296,6 @@ export class WillhabenScraper {
 		const page = await browser.newPage();
 		try {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
-
-			// Accept cookies if present
 			await this._acceptCookiesIfPresent(page);
 
 			const details = await page.evaluate(() => {

@@ -1,6 +1,3 @@
-/**
- * Enum representing all Austrian areas (Bundesländer).
- */
 export enum Area {
 	WIEN = "wien",
 	NIEDEROESTERREICH = "niederösterreich",

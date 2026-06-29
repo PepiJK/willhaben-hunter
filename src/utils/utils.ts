@@ -1,8 +1,4 @@
 /**
- * Generic utility functions.
- */
-
-/**
  * Splits an array into smaller chunks of a specified size.
  *
  * @param array - The array to chunk.

@@ -1,6 +1,3 @@
-/**
- * Entry point for the Willhaben Hunter CLI application.
- */
 import { CliApp } from "./cli/cli";
 
 // Handle EPIPE errors gracefully when piping to commands that close early (like jq or head)

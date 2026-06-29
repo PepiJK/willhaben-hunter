@@ -1,6 +1,3 @@
-/**
- * JSON Exporter module to write scraped data to a file or stdout.
- */
 import * as fs from "fs";
 import * as path from "path";
 import { WillhabenItem } from "../scraper/scraper.interface";

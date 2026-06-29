@@ -1,6 +1,3 @@
-/**
- * Exporter facade that routes to the correct exporter based on format and output options.
- */
 import { WillhabenItem } from "../scraper/scraper.interface";
 import { CsvExporter } from "./csv-exporter";
 import { ExportOptions } from "./exporter.interface";

@@ -1,6 +1,3 @@
-/**
- * Command Line Interface parser and router.
- */
 import { checkbox, input } from "@inquirer/prompts";
 import { Command, InvalidArgumentError, Option } from "commander";
 import ora from "ora";

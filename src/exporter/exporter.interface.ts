@@ -1,8 +1,4 @@
 /**
- * Shared types for the exporter layer.
- */
-
-/**
  * Supported output formats.
  */
 export type OutputFormat = "json" | "csv";
