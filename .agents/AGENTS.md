@@ -12,4 +12,4 @@
 5. **Verification:** After changes, you MUST run:
     - `npm run lint`
     - `npm test`
-    - `npm start search -- -q "test" --limit 1 --skip-details`
+    - `npm start search -- -q "test" --limit 1 --skip-details --non-interactive`
