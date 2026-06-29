@@ -5,7 +5,7 @@ import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
 import { chunkArray } from "../utils/utils";
-import { Area, areaIdMap, ViennaDistrict } from "./scraper.const";
+import { Area, areaIdMap, sortParamMap, ViennaDistrict } from "./scraper.const";
 import { ScrapeOptions, WillhabenItem } from "./scraper.interface";
 
 // Register the stealth plugin
@@ -108,7 +108,7 @@ export class WillhabenScraper {
 			}
 
 			// Fetch detail pages in parallel chunks
-			if (allItems.length > 0) {
+			if (!options.skipDetails && allItems.length > 0) {
 				if (options.onProgress) {
 					options.onProgress(`Fetching details for ${allItems.length} items...`);
 				}
@@ -176,6 +176,13 @@ export class WillhabenScraper {
 						params.append("areaId", id.toString());
 					}
 				}
+			}
+		}
+
+		if (options.sort) {
+			const sortValue = sortParamMap[options.sort];
+			if (sortValue) {
+				params.append("sort", sortValue);
 			}
 		}
 

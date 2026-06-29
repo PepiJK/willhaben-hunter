@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach, Mock } from "vitest";
 import { CliApp } from "../src/cli/cli";
 import * as inquirerPrompts from "@inquirer/prompts";
-import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
+import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
 
 vi.mock("@inquirer/prompts", () => ({
 	input: vi.fn(),
@@ -108,24 +108,146 @@ describe("CliApp - Interactive Prompts & Inputs", () => {
 		expect(checkboxMock).toHaveBeenCalledTimes(2);
 	});
 
-	it("should bypass prompts and use strict options when not in TTY environment", async () => {
+	describe("TTY and Interactive Modes", () => {
+		let originalStdinTTY: boolean | undefined;
+		let originalStdoutTTY: boolean | undefined;
+
+		beforeEach(() => {
+			originalStdinTTY = process.stdin.isTTY;
+			originalStdoutTTY = process.stdout.isTTY;
+			app._runScraperAndExport = vi.fn().mockResolvedValue(undefined);
+		});
+
+		afterEach(() => {
+			process.stdin.isTTY = originalStdinTTY;
+			process.stdout.isTTY = originalStdoutTTY;
+		});
+
+		it("should use interactive mode when both stdin and stdout are TTYs", async () => {
+			process.stdin.isTTY = true;
+			process.stdout.isTTY = true;
+			app._handleInteractivePrompts = vi.fn().mockResolvedValue({ query: "interactive" });
+
+			await app._executeSearchAction({});
+			expect(app._handleInteractivePrompts).toHaveBeenCalled();
+			expect(app._runScraperAndExport).toHaveBeenCalledWith(
+				expect.objectContaining({ query: "interactive" }),
+				expect.any(Object),
+				expect.any(Object),
+			);
+		});
+
+		it("should bypass interactive mode when stdin is not TTY (e.g., piped input)", async () => {
+			process.stdin.isTTY = false;
+			process.stdout.isTTY = true;
+			app._handleInteractivePrompts = vi.fn();
+
+			await app._executeSearchAction({ query: "piped in" });
+			expect(app._handleInteractivePrompts).not.toHaveBeenCalled();
+			expect(app._runScraperAndExport).toHaveBeenCalledWith(
+				expect.objectContaining({ query: "piped in" }),
+				expect.any(Object),
+				expect.any(Object),
+			);
+		});
+
+		it("should bypass interactive mode when stdout is not TTY (e.g., piped output)", async () => {
+			process.stdin.isTTY = true;
+			process.stdout.isTTY = false;
+			app._handleInteractivePrompts = vi.fn();
+
+			await app._executeSearchAction({ query: "piped out" });
+			expect(app._handleInteractivePrompts).not.toHaveBeenCalled();
+			expect(app._runScraperAndExport).toHaveBeenCalledWith(
+				expect.objectContaining({ query: "piped out" }),
+				expect.any(Object),
+				expect.any(Object),
+			);
+		});
+
+		it("should bypass interactive mode when --non-interactive flag is provided", async () => {
+			process.stdin.isTTY = true;
+			process.stdout.isTTY = true;
+			app._handleInteractivePrompts = vi.fn();
+
+			await app._executeSearchAction({
+				query: "forced non-interactive",
+				nonInteractive: true,
+			});
+			expect(app._handleInteractivePrompts).not.toHaveBeenCalled();
+		});
+	});
+
+	it("should forward format and output options to _runScraperAndExport", async () => {
 		app._runScraperAndExport = vi.fn().mockResolvedValue(undefined);
 
-		// Simulate non-TTY environment (e.g. CI or piped execution)
 		const originalIsTTY = process.stdin.isTTY;
 		process.stdin.isTTY = false;
 
 		await app._executeSearchAction({
-			query: "test query",
-			priceMin: 10,
-			limit: 5,
+			query: "test",
+			format: "csv",
+			output: "results.csv",
+		});
+
+		expect(app._runScraperAndExport).toHaveBeenCalledWith(
+			expect.objectContaining({ query: "test" }),
+			expect.objectContaining({
+				format: "csv",
+				outputPath: "results.csv",
+			}),
+			expect.objectContaining({
+				quiet: false,
+				failOnEmpty: false,
+			}),
+		);
+
+		process.stdin.isTTY = originalIsTTY;
+	});
+
+	it("should forward sort and skipDetails options to scrape options", async () => {
+		app._runScraperAndExport = vi.fn().mockResolvedValue(undefined);
+
+		const originalIsTTY = process.stdin.isTTY;
+		process.stdin.isTTY = false;
+
+		await app._executeSearchAction({
+			query: "monitor",
+			sort: SortOrder.PRICE_ASC,
+			skipDetails: true,
 		});
 
 		expect(app._runScraperAndExport).toHaveBeenCalledWith(
 			expect.objectContaining({
-				query: "test query",
-				priceMin: 10,
-				limit: 5,
+				query: "monitor",
+				sort: SortOrder.PRICE_ASC,
+				skipDetails: true,
+			}),
+			expect.any(Object),
+			expect.any(Object),
+		);
+
+		process.stdin.isTTY = originalIsTTY;
+	});
+
+	it("should forward quiet and failOnEmpty CLI flags", async () => {
+		app._runScraperAndExport = vi.fn().mockResolvedValue(undefined);
+
+		const originalIsTTY = process.stdin.isTTY;
+		process.stdin.isTTY = false;
+
+		await app._executeSearchAction({
+			query: "desk",
+			quiet: true,
+			failOnEmpty: true,
+		});
+
+		expect(app._runScraperAndExport).toHaveBeenCalledWith(
+			expect.objectContaining({ query: "desk" }),
+			expect.any(Object),
+			expect.objectContaining({
+				quiet: true,
+				failOnEmpty: true,
 			}),
 		);
 

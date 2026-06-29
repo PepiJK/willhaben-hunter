@@ -1,18 +1,18 @@
 /**
  * Command Line Interface parser and router.
  */
-import { Command, Option } from "commander";
 import { checkbox, input } from "@inquirer/prompts";
-import * as fs from "fs";
+import { Command, InvalidArgumentError, Option } from "commander";
 import ora from "ora";
 import * as path from "path";
 import pc from "picocolors";
-import { CsvExporter } from "../exporter/csv-exporter";
+import { Exporter } from "../exporter/exporter";
+import { ExportOptions, OutputFormat } from "../exporter/exporter.interface";
 import { WillhabenScraper } from "../scraper/scraper";
-import { Area, ViennaDistrict } from "../scraper/scraper.const";
+import { Area, districtNumberMap, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
 import { ScrapeOptions } from "../scraper/scraper.interface";
-import { CliPromptStep, CliSearchOptions } from "./cli.interface";
 import { formatExecutionTime } from "../utils/utils";
+import { CliPromptStep, CliSearchOptions } from "./cli.interface";
 
 /**
  * Main application class handling the CLI interface and orchestrating the scraping process.
@@ -65,10 +65,34 @@ export class CliApp {
 			.addOption(
 				new Option(
 					"--wien-districts <districts...>",
-					"Vienna districts to search in if Wien is selected.",
-				).choices(Object.values(ViennaDistrict)),
+					"Vienna district numbers (1-23)",
+				).argParser((val: string, prev: ViennaDistrict[]) => {
+					const num = parseInt(val, 10);
+					if (isNaN(num) || num < 1 || num > 23) {
+						throw new InvalidArgumentError(
+							`District must be a number between 1 and 23, got: ${val}`,
+						);
+					}
+					const district = districtNumberMap[num] as ViennaDistrict;
+					return prev ? prev.concat([district]) : [district];
+				}),
 			)
 			.option("-l, --limit <number>", "Maximum number of items to scrape", parseInt)
+			.addOption(
+				new Option("-f, --format <type>", "Output format")
+					.choices(["json", "csv"])
+					.default("json"),
+			)
+			.option("-o, --output <path>", "Output file path (omit to print to console)")
+			.addOption(
+				new Option("-s, --sort <order>", "Sort order for results").choices(
+					Object.values(SortOrder),
+				),
+			)
+			.option("--skip-details", "Skip fetching item detail pages (faster)")
+			.option("--quiet", "Suppress summary output (data only)")
+			.option("--fail-on-empty", "Exit with code 1 when no results are found")
+			.option("--non-interactive", "Force non-interactive mode (no prompts)")
 			.action(async (options: CliSearchOptions) => {
 				await this._executeSearchAction(options);
 			});
@@ -82,12 +106,15 @@ export class CliApp {
 	private async _executeSearchAction(options: CliSearchOptions): Promise<void> {
 		let scrapeOptions: ScrapeOptions;
 
-		if (process.stdin.isTTY) {
+		const isInteractiveEnvironment = process.stdin.isTTY && process.stdout.isTTY;
+
+		if (isInteractiveEnvironment && !options.nonInteractive) {
 			scrapeOptions = await this._handleInteractivePrompts(options);
 		} else {
 			if (!options.query || !options.query.trim()) {
-				console.error(pc.red("Error: Search query is required."));
-				process.exit(1);
+				this._reportError(
+					"Search query is required in non-interactive mode. Use -q <query>.",
+				);
 			}
 			scrapeOptions = { query: options.query };
 			if (options.limit !== undefined) scrapeOptions.limit = options.limit;
@@ -98,7 +125,18 @@ export class CliApp {
 				scrapeOptions.wienDistricts = options.wienDistricts;
 		}
 
-		await this._runScraperAndExport(scrapeOptions);
+		if (options.sort) scrapeOptions.sort = options.sort;
+		if (options.skipDetails) scrapeOptions.skipDetails = true;
+
+		const exportOptions: ExportOptions = {
+			format: (options.format as OutputFormat) ?? "json",
+			outputPath: options.output,
+		};
+
+		await this._runScraperAndExport(scrapeOptions, exportOptions, {
+			quiet: options.quiet ?? false,
+			failOnEmpty: options.failOnEmpty ?? false,
+		});
 	}
 
 	/**
@@ -220,10 +258,19 @@ export class CliApp {
 	 * Orchestrates the scraper and the exporter.
 	 *
 	 * @param scrapeOptions - The options for scraping.
+	 * @param exportOptions - The options for output format and destination.
+	 * @param cliFlags - Additional CLI behaviour flags.
 	 */
-	private async _runScraperAndExport(scrapeOptions: ScrapeOptions): Promise<void> {
+	private async _runScraperAndExport(
+		scrapeOptions: ScrapeOptions,
+		exportOptions: ExportOptions,
+		cliFlags: { quiet: boolean; failOnEmpty: boolean },
+	): Promise<void> {
 		const startTime = performance.now();
-		const spinner = ora(pc.blue(`Searching willhaben for: ${scrapeOptions.query}`)).start();
+		const spinner = ora({
+			text: pc.blue(`Searching willhaben for: ${scrapeOptions.query}`),
+			stream: process.stderr,
+		}).start();
 
 		// Attach progress callback
 		scrapeOptions.onProgress = (message: string) => {
@@ -234,43 +281,94 @@ export class CliApp {
 			const results = await this._scraper.scrape(scrapeOptions);
 			spinner.succeed(pc.green(`Successfully scraped ${results.length} items!`));
 
-			let exportPath = "";
+			let exportPath: string | undefined;
 
 			if (results.length > 0) {
-				const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
-				// Ensure output directory exists
-				const outputDir = path.join(process.cwd(), "output");
-				if (!fs.existsSync(outputDir)) {
-					fs.mkdirSync(outputDir, { recursive: true });
-				}
-
-				const filename = path.join("output", `willhaben-results-${timestamp}.csv`);
-				await CsvExporter.export(results, filename);
-				exportPath = path.resolve(filename);
+				exportPath = await Exporter.export(results, exportOptions);
 			}
 
 			const endTime = performance.now();
 			const elapsedSeconds = (endTime - startTime) / 1000;
-			const formattedTime = formatExecutionTime(elapsedSeconds);
 
-			console.log("");
-			console.log(`  🎯 ${pc.bold("Suche:")}       ${scrapeOptions.query}`);
-			console.log(`  📦 ${pc.bold("Gefunden:")}    ${results.length} Einträge`);
-
-			if (exportPath) {
-				console.log(`  💾 ${pc.bold("Datei:")}       ${pc.bold(pc.underline(exportPath))}`);
-			} else {
-				console.log(`  💾 ${pc.bold("Datei:")}       ${pc.yellow("Keine (0 Ergebnisse)")}`);
+			if (!cliFlags.quiet) {
+				this._printSummary(
+					scrapeOptions,
+					exportOptions,
+					exportPath,
+					results.length,
+					elapsedSeconds,
+				);
 			}
 
-			console.log(`  ⏱️ ${pc.bold("Dauer:")}       ${formattedTime}`);
-			console.log("");
+			if (cliFlags.failOnEmpty && results.length === 0) {
+				process.exitCode = 1;
+			}
 		} catch (error) {
 			spinner.fail(pc.red("Failed to scrape willhaben."));
 			if (error instanceof Error) {
-				console.error(pc.red(error.message));
+				this._reportError(error.message);
 			}
 		}
+	}
+
+	/**
+	 * Prints the run summary to stderr.
+	 * Uses human-readable emoji format for TTY, structured JSON for non-TTY.
+	 */
+	private _printSummary(
+		scrapeOptions: ScrapeOptions,
+		exportOptions: ExportOptions,
+		exportPath: string | undefined,
+		resultCount: number,
+		elapsedSeconds: number,
+	): void {
+		if (process.stderr.isTTY) {
+			const formattedTime = formatExecutionTime(elapsedSeconds);
+
+			console.error("");
+			console.error(`  🎯 ${pc.bold("Suche:")}       ${scrapeOptions.query}`);
+			console.error(`  📦 ${pc.bold("Gefunden:")}    ${resultCount} Einträge`);
+			console.error(`  📄 ${pc.bold("Format:")}      ${exportOptions.format.toUpperCase()}`);
+
+			if (exportPath) {
+				const resolvedPath = path.resolve(exportPath);
+				console.error(
+					`  💾 ${pc.bold("Datei:")}       ${pc.bold(pc.underline(resolvedPath))}`,
+				);
+			} else if (resultCount > 0) {
+				console.error(`  💾 ${pc.bold("Ausgabe:")}     ${pc.cyan("Konsole (stdout)")}`);
+			} else {
+				console.error(
+					`  💾 ${pc.bold("Ausgabe:")}     ${pc.yellow("Keine (0 Ergebnisse)")}`,
+				);
+			}
+
+			console.error(`  ⏱️ ${pc.bold("Dauer:")}       ${formattedTime}`);
+			console.error("");
+		} else {
+			// Structured JSON metadata for non-TTY consumers (LLMs, scripts)
+			const metadata = {
+				query: scrapeOptions.query,
+				resultCount,
+				format: exportOptions.format,
+				outputPath: exportPath ? path.resolve(exportPath) : null,
+				durationSeconds: parseFloat(elapsedSeconds.toFixed(2)),
+			};
+			console.error(JSON.stringify(metadata));
+		}
+	}
+
+	/**
+	 * Reports an error and exits. Uses colored text for TTY, structured JSON for non-TTY.
+	 *
+	 * @param message - The error message.
+	 */
+	private _reportError(message: string): never {
+		if (process.stderr.isTTY) {
+			console.error(pc.red(`Error: ${message}`));
+		} else {
+			console.error(JSON.stringify({ error: message }));
+		}
+		process.exit(1);
 	}
 }

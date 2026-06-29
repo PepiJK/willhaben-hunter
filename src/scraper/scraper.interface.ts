@@ -1,4 +1,4 @@
-import { Area, ViennaDistrict } from "./scraper.const";
+import { Area, SortOrder, ViennaDistrict } from "./scraper.const";
 
 /**
  * Interface representing a scraped item from willhaben.
@@ -24,5 +24,7 @@ export interface ScrapeOptions {
 	priceMax?: number;
 	area?: Area[];
 	wienDistricts?: ViennaDistrict[];
+	sort?: SortOrder | undefined;
+	skipDetails?: boolean | undefined;
 	onProgress?: ProgressCallback;
 }

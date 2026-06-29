@@ -1,4 +1,5 @@
-import { Area, ViennaDistrict } from "../scraper/scraper.const";
+import { Area, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
+import { OutputFormat } from "../exporter/exporter.interface";
 
 /**
  * Steps for the interactive CLI prompts, mapped to CliSearchOptions keys.
@@ -22,4 +23,11 @@ export interface CliSearchOptions {
 	area?: Area[];
 	wienDistricts?: ViennaDistrict[];
 	limit?: number;
+	format?: OutputFormat;
+	output?: string;
+	sort?: SortOrder | undefined;
+	skipDetails?: boolean | undefined;
+	quiet?: boolean | undefined;
+	failOnEmpty?: boolean | undefined;
+	nonInteractive?: boolean | undefined;
 }

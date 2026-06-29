@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WillhabenScraper } from "../src/scraper/scraper";
-import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
+import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
 
 describe("URL Builder Suite", () => {
 	it("should build a basic url with only a keyword", () => {
@@ -45,5 +45,23 @@ describe("URL Builder Suite", () => {
 		expect(url).toContain("areaId=117223");
 		expect(url).toContain("areaId=117245");
 		expect(url).not.toContain("areaId=900");
+	});
+
+	it("should include sort parameter when specified", () => {
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "sofa", sort: SortOrder.PRICE_ASC });
+		expect(url).toContain("sort=2");
+	});
+
+	it("should not include sort parameter for relevance (default)", () => {
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "sofa", sort: SortOrder.RELEVANCE });
+		expect(url).not.toContain("sort=");
+	});
+
+	it("should not include sort parameter when sort is undefined", () => {
+		const scraper = new WillhabenScraper();
+		const url = scraper.buildUrl({ query: "sofa" });
+		expect(url).not.toContain("sort=");
 	});
 });
