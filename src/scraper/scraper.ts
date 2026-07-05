@@ -1,7 +1,7 @@
 import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
-import { CONCURRENCY_LIMIT, DETAIL_CONCURRENCY, ITEMS_PER_PAGE } from "../app.const";
+import { CONCURRENCY_LIMIT, DETAIL_CONCURRENCY } from "../app.const";
 import { chunkArray } from "../utils/utils";
 import { Area, areaIdMap, sortParamMap, ViennaDistrict } from "./scraper.const";
 import { ScrapeOptions, WillhabenItem } from "./scraper.interface";
@@ -53,12 +53,13 @@ export class WillhabenHunterScraper {
 				);
 			}
 
-			// Willhaben generally shows ~30 items per page
-			const totalAvailablePages = Math.ceil(totalResults / ITEMS_PER_PAGE);
+			// Dynamically determine items per page based on the first page
+			const itemsPerPage = firstPageItems.length > 0 ? firstPageItems.length : 30;
+			const totalAvailablePages = Math.ceil(totalResults / itemsPerPage);
 
 			let pagesToFetch = totalAvailablePages;
 			if (options.limit !== undefined) {
-				const maxPagesForLimit = Math.ceil(options.limit / ITEMS_PER_PAGE);
+				const maxPagesForLimit = Math.ceil(options.limit / itemsPerPage);
 				pagesToFetch = Math.min(totalAvailablePages, maxPagesForLimit);
 			} else {
 				// No cap, fetch all available pages
@@ -117,9 +118,15 @@ export class WillhabenHunterScraper {
 				for (const chunk of detailChunks) {
 					const promises = chunk.map(async (item) => {
 						if (!item.url) return;
-						const details = await this._scrapeItemDetails(browser, item.url);
-						item.description = details.description;
-						item.attributes = details.attributes;
+						try {
+							const details = await this._scrapeItemDetails(browser, item.url);
+							item.description = details.description;
+							item.attributes = details.attributes;
+						} catch (error) {
+							// Log warning and continue so we don't lose all other scraped data
+							const msg = error instanceof Error ? error.message : String(error);
+							console.warn(`\n⚠️ Warning: ${msg}`);
+						}
 					});
 					await Promise.all(promises);
 					processedCount += chunk.length;
@@ -198,6 +205,7 @@ export class WillhabenHunterScraper {
 		url: string,
 	): Promise<{ items: WillhabenItem[]; totalResultsText: string }> {
 		const page = await browser.newPage();
+		await this._blockUnnecessaryResources(page);
 		try {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
 			await this._acceptCookiesIfPresent(page);
@@ -296,8 +304,9 @@ export class WillhabenHunterScraper {
 		url: string,
 	): Promise<{ description: string; attributes: string }> {
 		const page = await browser.newPage();
+		await this._blockUnnecessaryResources(page);
 		try {
-			await page.goto(url, { waitUntil: "domcontentloaded" });
+			await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 			await this._acceptCookiesIfPresent(page);
 
 			const details = await page.evaluate(() => {
@@ -367,5 +376,21 @@ export class WillhabenHunterScraper {
 		} catch {
 			// ignore if not present
 		}
+	}
+
+	/**
+	 * Blocks unnecessary resources (images, css, fonts, media) to drastically speed up page loads.
+	 *
+	 * @param page - The Playwright page instance.
+	 */
+	private async _blockUnnecessaryResources(page: Page): Promise<void> {
+		await page.route("**/*", (route) => {
+			const resourceType = route.request().resourceType();
+			if (["image", "stylesheet", "font", "media"].includes(resourceType)) {
+				route.abort();
+			} else {
+				route.continue();
+			}
+		});
 	}
 }
