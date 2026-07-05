@@ -29,7 +29,10 @@ export class WillhabenHunterScraper {
 	 */
 	public async scrape(options: WillhabenHunterScrapeOptions): Promise<WillhabenHunterItem[]> {
 		// Launch browser in headless mode
-		const browser = await chromium.launch({ headless: true });
+		const browser = await chromium.launch({
+			headless: true,
+			args: ["--no-sandbox", "--disable-setuid-sandbox"],
+		});
 
 		try {
 			const baseUrl = this.buildUrl(options);
@@ -223,11 +226,13 @@ export class WillhabenHunterScraper {
 		url: string,
 	): Promise<{ items: WillhabenHunterItem[]; totalResultsText: string }> {
 		const page = await browser.newPage();
-		await this._blockUnnecessaryResources(page);
+
 		try {
 			await page.goto(url, { waitUntil: "domcontentloaded" });
 			await this._acceptCookiesIfPresent(page);
-			await page.waitForTimeout(200);
+
+			// Wait for the result list title to appear before scraping
+			await page.waitForSelector('[data-testid="result-list-title"]', { timeout: 15000 });
 
 			// Smooth scroll down to force lazy load of all items
 			// Faster scrolling: 8 iterations of 1000px with 200ms delay = 1.6s
@@ -244,11 +249,12 @@ export class WillhabenHunterScraper {
 					if (match && match[1]) return match[1].replace(/\./g, "");
 				}
 
+				const bodyText = document.body?.innerText ?? "";
 				const match =
-					document.body.innerText.match(/([\d.]+)\s*Anzeigen/i) ||
-					document.body.innerText.match(/([\d.]+)\s*Angebote/i) ||
-					document.body.innerText.match(/([\d.]+)\s*Treffer/i) ||
-					document.body.innerText.match(/([\d.]+)\s*Ergebnisse/i);
+					bodyText.match(/([\d.]+)\s*Anzeigen/i) ||
+					bodyText.match(/([\d.]+)\s*Angebote/i) ||
+					bodyText.match(/([\d.]+)\s*Treffer/i) ||
+					bodyText.match(/([\d.]+)\s*Ergebnisse/i);
 				return match && match[1] ? match[1].replace(/\./g, "") : "";
 			});
 
@@ -301,7 +307,7 @@ export class WillhabenHunterScraper {
 	 * @returns The district ID.
 	 */
 	private _getWienDistrictId(district: WillhabenHunterViennaDistrict): number {
-		const match = district.match(/^(\d+)\./);
+		const match = district.match(/^(\d+)/);
 		if (match && match[1]) {
 			const num = parseInt(match[1], 10);
 			// 1. Bezirk = 117223, 2. Bezirk = 117224, etc.
@@ -322,9 +328,9 @@ export class WillhabenHunterScraper {
 		url: string,
 	): Promise<{ description: string; attributes: string }> {
 		const page = await browser.newPage();
-		await this._blockUnnecessaryResources(page);
+
 		try {
-			await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+			await page.goto(url, { waitUntil: "commit", timeout: 60000 });
 			await this._acceptCookiesIfPresent(page);
 
 			const details = await page.evaluate(() => {
@@ -394,21 +400,5 @@ export class WillhabenHunterScraper {
 		} catch {
 			// ignore if not present
 		}
-	}
-
-	/**
-	 * Blocks unnecessary resources (images, css, fonts, media) to drastically speed up page loads.
-	 *
-	 * @param page - The Playwright page instance.
-	 */
-	private async _blockUnnecessaryResources(page: Page): Promise<void> {
-		await page.route("**/*", (route) => {
-			const resourceType = route.request().resourceType();
-			if (["image", "stylesheet", "font", "media"].includes(resourceType)) {
-				route.abort();
-			} else {
-				route.continue();
-			}
-		});
 	}
 }
