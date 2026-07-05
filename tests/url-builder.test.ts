@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { WillhabenHunterScraper } from "../src/scraper/scraper";
-import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
+import {
+	WillhabenHunterArea,
+	WillhabenHunterSortOrder,
+	WillhabenHunterViennaDistrict,
+} from "../src/scraper/scraper.const";
 
 describe("URL Builder Suite", () => {
 	it("should build a basic url with only a keyword", () => {
@@ -20,7 +24,10 @@ describe("URL Builder Suite", () => {
 
 	it("should include standard area IDs", () => {
 		const scraper = new WillhabenHunterScraper();
-		const url = scraper.buildUrl({ query: "bike", area: [Area.TIROL, Area.SALZBURG] });
+		const url = scraper.buildUrl({
+			query: "bike",
+			area: [WillhabenHunterArea.TIROL, WillhabenHunterArea.SALZBURG],
+		});
 		// Tirol is 7, Salzburg is 5
 		expect(url).toContain("areaId=7");
 		expect(url).toContain("areaId=5");
@@ -28,7 +35,7 @@ describe("URL Builder Suite", () => {
 
 	it("should include generic Wien area ID if no districts are specified", () => {
 		const scraper = new WillhabenHunterScraper();
-		const url = scraper.buildUrl({ query: "desk", area: [Area.WIEN] });
+		const url = scraper.buildUrl({ query: "desk", area: [WillhabenHunterArea.WIEN] });
 		expect(url).toContain("areaId=900");
 	});
 
@@ -36,8 +43,11 @@ describe("URL Builder Suite", () => {
 		const scraper = new WillhabenHunterScraper();
 		const url = scraper.buildUrl({
 			query: "chair",
-			area: [Area.WIEN],
-			wienDistricts: [ViennaDistrict.INNERE_STADT, ViennaDistrict.LIESING],
+			area: [WillhabenHunterArea.WIEN],
+			wienDistricts: [
+				WillhabenHunterViennaDistrict.INNERE_STADT,
+				WillhabenHunterViennaDistrict.LIESING,
+			],
 		});
 
 		// Innere Stadt (1st) = 117223
@@ -49,13 +59,13 @@ describe("URL Builder Suite", () => {
 
 	it("should include sort parameter when specified", () => {
 		const scraper = new WillhabenHunterScraper();
-		const url = scraper.buildUrl({ query: "sofa", sort: SortOrder.PRICE_ASC });
+		const url = scraper.buildUrl({ query: "sofa", sort: WillhabenHunterSortOrder.PRICE_ASC });
 		expect(url).toContain("sort=2");
 	});
 
 	it("should not include sort parameter for relevance (default)", () => {
 		const scraper = new WillhabenHunterScraper();
-		const url = scraper.buildUrl({ query: "sofa", sort: SortOrder.RELEVANCE });
+		const url = scraper.buildUrl({ query: "sofa", sort: WillhabenHunterSortOrder.RELEVANCE });
 		expect(url).not.toContain("sort=");
 	});
 

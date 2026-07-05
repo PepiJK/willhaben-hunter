@@ -6,7 +6,7 @@ export type OutputFormat = "json" | "csv";
 /**
  * Options controlling how and where results are exported.
  */
-export interface ExportOptions {
+export interface WillhabenHunterExportOptions {
 	format: OutputFormat;
 	outputPath?: string | undefined;
 }

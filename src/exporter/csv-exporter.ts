@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { createObjectCsvStringifier, createObjectCsvWriter } from "csv-writer";
-import { WillhabenItem } from "../scraper/scraper.interface";
+import { WillhabenHunterItem } from "../scraper/scraper.interface";
 
-/** CSV column headers for WillhabenItem export. */
+/** CSV column headers for WillhabenHunterItem export. */
 const CSV_HEADERS = [
 	{ id: "id", title: "ID" },
 	{ id: "title", title: "TITLE" },
@@ -23,7 +23,10 @@ export class WillhabenHunterCsvExporter {
 	 * @param items - The array of items to export.
 	 * @param outputPath - The path to the destination CSV file.
 	 */
-	public static async exportToFile(items: WillhabenItem[], outputPath: string): Promise<void> {
+	public static async exportToFile(
+		items: WillhabenHunterItem[],
+		outputPath: string,
+	): Promise<void> {
 		const dir = path.dirname(outputPath);
 		if (!fs.existsSync(dir)) {
 			fs.mkdirSync(dir, { recursive: true });
@@ -43,7 +46,7 @@ export class WillhabenHunterCsvExporter {
 	 * @param items - The array of items to serialize.
 	 * @returns The formatted CSV string including headers.
 	 */
-	public static toConsoleString(items: WillhabenItem[]): string {
+	public static toConsoleString(items: WillhabenHunterItem[]): string {
 		const stringifier = createObjectCsvStringifier({ header: CSV_HEADERS });
 		const header = stringifier.getHeaderString() ?? "";
 		const records = stringifier.stringifyRecords(items);

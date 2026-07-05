@@ -1,6 +1,6 @@
-import { WillhabenItem } from "../scraper/scraper.interface";
+import { WillhabenHunterItem } from "../scraper/scraper.interface";
 import { WillhabenHunterCsvExporter } from "./csv-exporter";
-import { ExportOptions } from "./exporter.interface";
+import { WillhabenHunterExportOptions } from "./exporter.interface";
 import { WillhabenHunterJsonExporter } from "./json-exporter";
 
 /**
@@ -18,8 +18,8 @@ export class WillhabenHunterExporter {
 	 * @returns The resolved output file path, or `undefined` if printed to console.
 	 */
 	public static async export(
-		items: WillhabenItem[],
-		options: ExportOptions,
+		items: WillhabenHunterItem[],
+		options: WillhabenHunterExportOptions,
 	): Promise<string | undefined> {
 		if (options.outputPath) {
 			return WillhabenHunterExporter._exportToFile(items, options);
@@ -28,8 +28,8 @@ export class WillhabenHunterExporter {
 	}
 
 	private static async _exportToFile(
-		items: WillhabenItem[],
-		options: ExportOptions,
+		items: WillhabenHunterItem[],
+		options: WillhabenHunterExportOptions,
 	): Promise<string> {
 		const outputPath = options.outputPath!;
 
@@ -42,7 +42,10 @@ export class WillhabenHunterExporter {
 		return outputPath;
 	}
 
-	private static _exportToConsole(items: WillhabenItem[], options: ExportOptions): undefined {
+	private static _exportToConsole(
+		items: WillhabenHunterItem[],
+		options: WillhabenHunterExportOptions,
+	): undefined {
 		const output =
 			options.format === "csv"
 				? WillhabenHunterCsvExporter.toConsoleString(items)

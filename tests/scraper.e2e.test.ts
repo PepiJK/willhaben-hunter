@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WillhabenHunterScraper } from "../src/scraper/scraper";
-import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
+import { WillhabenHunterArea, WillhabenHunterViennaDistrict } from "../src/scraper/scraper.const";
 
 describe("Scraper E2E Suite", () => {
 	// E2E test to verify pagination, parallel chunking, and Playwright DOM extraction
@@ -9,8 +9,8 @@ describe("Scraper E2E Suite", () => {
 		const results = await scraper.scrape({
 			query: "iphone",
 			limit: 2, // 2 items is enough to prove the array is returned and parsed correctly
-			area: [Area.WIEN],
-			wienDistricts: [ViennaDistrict.INNERE_STADT], // 1. Bezirk
+			area: [WillhabenHunterArea.WIEN],
+			wienDistricts: [WillhabenHunterViennaDistrict.INNERE_STADT], // 1. Bezirk
 		});
 
 		expect(results).toBeDefined();

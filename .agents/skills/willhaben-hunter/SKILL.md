@@ -13,12 +13,12 @@ This skill provides instructions for utilizing the `willhaben-hunter` CLI scrape
 
 When executing the CLI as a background task (e.g., via `run_command`), **you must supply the `--non-interactive` flag** if any search parameters (like query) are missing or if the program runs in a non-TTY environment. Without it, the CLI will prompt for missing values (like `priceMin` or `limit`) via `@inquirer/prompts` and hang indefinitely waiting for input.
 
-### 2. Prefer Direct Execution via `npx ts-node`
+### 2. Avoid `npm start`
 
-Avoid running the tool using `npm start` in pipeable environments, because `npm` injects its own startup banner into `stdout`, which breaks JSON parsers like `jq`.
+Do not run the tool using `npm start` because `npm` injects its own startup banner into `stdout`, which breaks JSON output and `jq` parsers.
 
-- **Correct:** `npx ts-node src/cli.ts search ...`
-- **Incorrect:** `npm start search ...`
+- **If developing locally:** `npx ts-node src/cli.ts search ...`
+- **If globally installed:** `willhaben-hunter search ...`
 
 ### 3. Save Output to Files for Large Results
 

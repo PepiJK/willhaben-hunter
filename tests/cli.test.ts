@@ -1,7 +1,11 @@
 import * as inquirerPrompts from "@inquirer/prompts";
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
 import { WillhabenHunterCli } from "../src/cli/cli";
-import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
+import {
+	WillhabenHunterArea,
+	WillhabenHunterSortOrder,
+	WillhabenHunterViennaDistrict,
+} from "../src/scraper/scraper.const";
 
 vi.mock("@inquirer/prompts", () => ({
 	input: vi.fn(),
@@ -32,16 +36,16 @@ describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 			.mockResolvedValueOnce("10"); // limit
 
 		checkboxMock
-			.mockResolvedValueOnce([Area.WIEN]) // area
-			.mockResolvedValueOnce([ViennaDistrict.INNERE_STADT]); // wienDistricts
+			.mockResolvedValueOnce([WillhabenHunterArea.WIEN]) // area
+			.mockResolvedValueOnce([WillhabenHunterViennaDistrict.INNERE_STADT]); // wienDistricts
 
 		const result = await app._handleInteractivePrompts({});
 
 		expect(result.query).toBe("iphone");
 		expect(result.priceMin).toBe(100);
 		expect(result.priceMax).toBe(500);
-		expect(result.area).toEqual([Area.WIEN]);
-		expect(result.wienDistricts).toEqual([ViennaDistrict.INNERE_STADT]);
+		expect(result.area).toEqual([WillhabenHunterArea.WIEN]);
+		expect(result.wienDistricts).toEqual([WillhabenHunterViennaDistrict.INNERE_STADT]);
 		expect(result.limit).toBe(10);
 	});
 
@@ -50,7 +54,7 @@ describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 			query: "macbook",
 			priceMin: 200,
 			priceMax: 1000,
-			area: [Area.KAERNTEN],
+			area: [WillhabenHunterArea.KAERNTEN],
 			limit: 5,
 		});
 
@@ -59,7 +63,7 @@ describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 		expect(result.query).toBe("macbook");
 		expect(result.priceMin).toBe(200);
 		expect(result.priceMax).toBe(1000);
-		expect(result.area).toEqual([Area.KAERNTEN]);
+		expect(result.area).toEqual([WillhabenHunterArea.KAERNTEN]);
 		expect(result.limit).toBe(5);
 		expect(result.wienDistricts).toBeUndefined();
 	});
@@ -97,12 +101,12 @@ describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 			.mockResolvedValueOnce("");
 
 		checkboxMock
-			.mockResolvedValueOnce([Area.WIEN]) // area is Wien
+			.mockResolvedValueOnce([WillhabenHunterArea.WIEN]) // area is Wien
 			.mockResolvedValueOnce([]); // User skipped specific districts
 
 		const result = await app._handleInteractivePrompts({});
 
-		expect(result.area).toEqual([Area.WIEN]);
+		expect(result.area).toEqual([WillhabenHunterArea.WIEN]);
 		expect(result.wienDistricts).toBeUndefined(); // empty selection converts to undefined
 		expect(inputMock).toHaveBeenCalledTimes(4);
 		expect(checkboxMock).toHaveBeenCalledTimes(2);
@@ -213,14 +217,14 @@ describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 
 		await app._executeSearchAction({
 			query: "monitor",
-			sort: SortOrder.PRICE_ASC,
+			sort: WillhabenHunterSortOrder.PRICE_ASC,
 			skipDetails: true,
 		});
 
 		expect(app._runScraperAndExport).toHaveBeenCalledWith(
 			expect.objectContaining({
 				query: "monitor",
-				sort: SortOrder.PRICE_ASC,
+				sort: WillhabenHunterSortOrder.PRICE_ASC,
 				skipDetails: true,
 			}),
 			expect.any(Object),

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { WillhabenHunterCsvExporter } from "../src/exporter/csv-exporter";
 import { WillhabenHunterExporter } from "../src/exporter/exporter";
 import { WillhabenHunterJsonExporter } from "../src/exporter/json-exporter";
-import { WillhabenItem } from "../src/scraper/scraper.interface";
+import { WillhabenHunterItem } from "../src/scraper/scraper.interface";
 
 vi.mock("fs", async () => {
 	const actual = await vi.importActual("fs");
@@ -28,7 +28,7 @@ vi.mock("csv-writer", () => {
 	};
 });
 
-const sampleItems: WillhabenItem[] = [
+const sampleItems: WillhabenHunterItem[] = [
 	{ id: "123", title: "Test Item", price: "100", url: "https://example.com/1" },
 	{ id: "456", title: "Test Item 2", price: "200", url: "https://example.com/2" },
 ];

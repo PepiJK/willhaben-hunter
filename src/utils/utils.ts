@@ -5,7 +5,7 @@
  * @param size - The maximum size of each chunk.
  * @returns An array of chunks.
  */
-export function chunkArray<T>(array: T[], size: number): T[][] {
+export function WillhabenHunterChunkArray<T>(array: T[], size: number): T[][] {
 	const result: T[][] = [];
 	for (let i = 0; i < array.length; i += size) {
 		result.push(array.slice(i, i + size));
@@ -19,7 +19,7 @@ export function chunkArray<T>(array: T[], size: number): T[][] {
  * @param seconds - The execution time in seconds.
  * @returns A formatted string.
  */
-export function formatExecutionTime(seconds: number): string {
+export function WillhabenHunterFormatExecutionTime(seconds: number): string {
 	if (seconds < 60) {
 		return `${seconds.toFixed(2)}s`;
 	}

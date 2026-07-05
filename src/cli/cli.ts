@@ -4,12 +4,17 @@ import ora from "ora";
 import * as path from "path";
 import pc from "picocolors";
 import { WillhabenHunterExporter } from "../exporter/exporter";
-import { ExportOptions, OutputFormat } from "../exporter/exporter.interface";
+import { OutputFormat, WillhabenHunterExportOptions } from "../exporter/exporter.interface";
 import { WillhabenHunterScraper } from "../scraper/scraper";
-import { Area, districtNumberMap, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
-import { ScrapeOptions } from "../scraper/scraper.interface";
-import { formatExecutionTime } from "../utils/utils";
-import { CliPromptStep, CliSearchOptions } from "./cli.interface";
+import {
+	WILLHABEN_DISTRICT_NUMBER_MAP,
+	WillhabenHunterArea,
+	WillhabenHunterSortOrder,
+	WillhabenHunterViennaDistrict,
+} from "../scraper/scraper.const";
+import { WillhabenHunterScrapeOptions } from "../scraper/scraper.interface";
+import { WillhabenHunterFormatExecutionTime } from "../utils/utils";
+import { CliSearchOptions, WillhabenHunterCliPromptStep } from "./cli.interface";
 
 /**
  * Main application class handling the CLI interface and orchestrating the scraping process.
@@ -51,9 +56,9 @@ export class WillhabenHunterCli {
 			.addOption(
 				new Option(
 					"-a, --area <areas...>",
-					"Area (Bundesland) to search in. Can be specified multiple times.",
+					"WillhabenHunterArea (Bundesland) to search in. Can be specified multiple times.",
 				)
-					.choices(Object.values(Area))
+					.choices(Object.values(WillhabenHunterArea))
 					.argParser((val, prev: string[]) => {
 						const lower = val.toLowerCase();
 						return prev ? prev.concat([lower]) : [lower];
@@ -63,14 +68,16 @@ export class WillhabenHunterCli {
 				new Option(
 					"--wien-districts <districts...>",
 					"Vienna district numbers (1-23)",
-				).argParser((val: string, prev: ViennaDistrict[]) => {
+				).argParser((val: string, prev: WillhabenHunterViennaDistrict[]) => {
 					const num = parseInt(val, 10);
 					if (isNaN(num) || num < 1 || num > 23) {
 						throw new InvalidArgumentError(
 							`District must be a number between 1 and 23, got: ${val}`,
 						);
 					}
-					const district = districtNumberMap[num] as ViennaDistrict;
+					const district = WILLHABEN_DISTRICT_NUMBER_MAP[
+						num
+					] as WillhabenHunterViennaDistrict;
 					return prev ? prev.concat([district]) : [district];
 				}),
 			)
@@ -82,8 +89,8 @@ export class WillhabenHunterCli {
 			)
 			.option("-o, --output <path>", "Output file path (omit to print to console)")
 			.addOption(
-				new Option("-s, --sort <order>", "Sort order for results").choices(
-					Object.values(SortOrder),
+				new Option("-s, --sort <order>", "WillhabenHunterSort order for results").choices(
+					Object.values(WillhabenHunterSortOrder),
 				),
 			)
 			.option("--skip-details", "Skip fetching item detail pages (faster)")
@@ -101,7 +108,7 @@ export class WillhabenHunterCli {
 	 * @param options - The parsed command-line options.
 	 */
 	private async _executeSearchAction(options: CliSearchOptions): Promise<void> {
-		let scrapeOptions: ScrapeOptions;
+		let scrapeOptions: WillhabenHunterScrapeOptions;
 
 		const isInteractiveEnvironment = process.stdin.isTTY && process.stdout.isTTY;
 
@@ -125,7 +132,7 @@ export class WillhabenHunterCli {
 		if (options.sort) scrapeOptions.sort = options.sort;
 		if (options.skipDetails) scrapeOptions.skipDetails = true;
 
-		const exportOptions: ExportOptions = {
+		const exportOptions: WillhabenHunterExportOptions = {
 			format: (options.format as OutputFormat) ?? "json",
 			outputPath: options.output,
 		};
@@ -142,15 +149,17 @@ export class WillhabenHunterCli {
 	 * @param options - The initial options provided via CLI arguments.
 	 * @returns The complete scrape options.
 	 */
-	private async _handleInteractivePrompts(options: CliSearchOptions): Promise<ScrapeOptions> {
+	private async _handleInteractivePrompts(
+		options: CliSearchOptions,
+	): Promise<WillhabenHunterScrapeOptions> {
 		let { query, priceMin, priceMax, area, limit, wienDistricts } = options;
 
-		const steps: CliPromptStep[] = [];
-		if (!query) steps.push(CliPromptStep.QUERY);
-		if (priceMin === undefined) steps.push(CliPromptStep.PRICE_MIN);
-		if (priceMax === undefined) steps.push(CliPromptStep.PRICE_MAX);
-		if (area === undefined) steps.push(CliPromptStep.AREA);
-		if (limit === undefined) steps.push(CliPromptStep.LIMIT);
+		const steps: WillhabenHunterCliPromptStep[] = [];
+		if (!query) steps.push(WillhabenHunterCliPromptStep.QUERY);
+		if (priceMin === undefined) steps.push(WillhabenHunterCliPromptStep.PRICE_MIN);
+		if (priceMax === undefined) steps.push(WillhabenHunterCliPromptStep.PRICE_MAX);
+		if (area === undefined) steps.push(WillhabenHunterCliPromptStep.AREA);
+		if (limit === undefined) steps.push(WillhabenHunterCliPromptStep.LIMIT);
 
 		let currentStepIndex = 0;
 
@@ -158,7 +167,7 @@ export class WillhabenHunterCli {
 			const step = steps[currentStepIndex];
 			try {
 				switch (step) {
-					case CliPromptStep.QUERY: {
+					case WillhabenHunterCliPromptStep.QUERY: {
 						const q = await input({
 							message: "Enter the item to search for:",
 							default: query || "",
@@ -168,7 +177,7 @@ export class WillhabenHunterCli {
 						query = q;
 						break;
 					}
-					case CliPromptStep.PRICE_MIN: {
+					case WillhabenHunterCliPromptStep.PRICE_MIN: {
 						const pMin = await input({
 							message: "Enter minimum price (or press enter to skip):",
 							default: priceMin?.toString() || "",
@@ -176,7 +185,7 @@ export class WillhabenHunterCli {
 						priceMin = pMin.trim() ? parseFloat(pMin) : undefined;
 						break;
 					}
-					case CliPromptStep.PRICE_MAX: {
+					case WillhabenHunterCliPromptStep.PRICE_MAX: {
 						const pMax = await input({
 							message: "Enter maximum price (or press enter to skip):",
 							default: priceMax?.toString() || "",
@@ -184,39 +193,48 @@ export class WillhabenHunterCli {
 						priceMax = pMax.trim() ? parseFloat(pMax) : undefined;
 						break;
 					}
-					case CliPromptStep.AREA: {
+					case WillhabenHunterCliPromptStep.AREA: {
 						const a = await checkbox({
 							message:
 								"Select areas to search in (use space to select, enter to confirm):",
-							choices: Object.values(Area).map((val) => ({
+							choices: Object.values(WillhabenHunterArea).map((val) => ({
 								name: val,
 								value: val,
-								checked: area?.includes(val as Area) || false,
+								checked: area?.includes(val as WillhabenHunterArea) || false,
 							})),
 						});
-						area = a && a.length > 0 ? (a as Area[]) : undefined;
+						area = a && a.length > 0 ? (a as WillhabenHunterArea[]) : undefined;
 
 						// If Wien is selected, we prompt for districts next
-						if (area && area.includes(Area.WIEN) && !wienDistricts) {
-							if (!steps.includes(CliPromptStep.WIEN_DISTRICTS)) {
-								steps.splice(currentStepIndex + 1, 0, CliPromptStep.WIEN_DISTRICTS);
+						if (area && area.includes(WillhabenHunterArea.WIEN) && !wienDistricts) {
+							if (!steps.includes(WillhabenHunterCliPromptStep.WIEN_DISTRICTS)) {
+								steps.splice(
+									currentStepIndex + 1,
+									0,
+									WillhabenHunterCliPromptStep.WIEN_DISTRICTS,
+								);
 							}
 						}
 						break;
 					}
-					case CliPromptStep.WIEN_DISTRICTS: {
+					case WillhabenHunterCliPromptStep.WIEN_DISTRICTS: {
 						const wd = await checkbox({
 							message: "Select Vienna districts (or none for all of Vienna):",
-							choices: Object.values(ViennaDistrict).map((val) => ({
+							choices: Object.values(WillhabenHunterViennaDistrict).map((val) => ({
 								name: val,
 								value: val,
-								checked: wienDistricts?.includes(val as ViennaDistrict) || false,
+								checked:
+									wienDistricts?.includes(val as WillhabenHunterViennaDistrict) ||
+									false,
 							})),
 						});
-						wienDistricts = wd && wd.length > 0 ? (wd as ViennaDistrict[]) : undefined;
+						wienDistricts =
+							wd && wd.length > 0
+								? (wd as WillhabenHunterViennaDistrict[])
+								: undefined;
 						break;
 					}
-					case CliPromptStep.LIMIT: {
+					case WillhabenHunterCliPromptStep.LIMIT: {
 						const l = await input({
 							message: "Enter maximum items to scrape (or press enter to skip):",
 							default: limit?.toString() || "",
@@ -241,7 +259,7 @@ export class WillhabenHunterCli {
 			}
 		}
 
-		const result: ScrapeOptions = { query: query! };
+		const result: WillhabenHunterScrapeOptions = { query: query! };
 		if (limit !== undefined && !isNaN(limit)) result.limit = limit;
 		if (priceMin !== undefined && !isNaN(priceMin)) result.priceMin = priceMin;
 		if (priceMax !== undefined && !isNaN(priceMax)) result.priceMax = priceMax;
@@ -259,8 +277,8 @@ export class WillhabenHunterCli {
 	 * @param cliFlags - Additional CLI behaviour flags.
 	 */
 	private async _runScraperAndExport(
-		scrapeOptions: ScrapeOptions,
-		exportOptions: ExportOptions,
+		scrapeOptions: WillhabenHunterScrapeOptions,
+		exportOptions: WillhabenHunterExportOptions,
 		cliFlags: { quiet: boolean; failOnEmpty: boolean },
 	): Promise<void> {
 		const startTime = performance.now();
@@ -313,14 +331,14 @@ export class WillhabenHunterCli {
 	 * Uses human-readable emoji format for TTY, structured JSON for non-TTY.
 	 */
 	private _printSummary(
-		scrapeOptions: ScrapeOptions,
-		exportOptions: ExportOptions,
+		scrapeOptions: WillhabenHunterScrapeOptions,
+		exportOptions: WillhabenHunterExportOptions,
 		exportPath: string | undefined,
 		resultCount: number,
 		elapsedSeconds: number,
 	): void {
 		if (process.stderr.isTTY) {
-			const formattedTime = formatExecutionTime(elapsedSeconds);
+			const formattedTime = WillhabenHunterFormatExecutionTime(elapsedSeconds);
 
 			console.error("");
 			console.error(`  🎯 ${pc.bold("Search:")}       ${scrapeOptions.query}`);

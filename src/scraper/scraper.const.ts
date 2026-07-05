@@ -1,4 +1,4 @@
-export enum Area {
+export enum WillhabenHunterArea {
 	WIEN = "wien",
 	NIEDEROESTERREICH = "niederösterreich",
 	OBEROESTERREICH = "oberösterreich",
@@ -13,7 +13,7 @@ export enum Area {
 /**
  * Enum representing Vienna districts.
  */
-export enum ViennaDistrict {
+export enum WillhabenHunterViennaDistrict {
 	INNERE_STADT = "1. Bezirk (Innere Stadt)",
 	LEOPOLDSTADT = "2. Bezirk (Leopoldstadt)",
 	LANDSTRASSE = "3. Bezirk (Landstraße)",
@@ -39,22 +39,22 @@ export enum ViennaDistrict {
 	LIESING = "23. Bezirk (Liesing)",
 }
 
-export const areaIdMap: Record<Area, number> = {
-	[Area.BURGENLAND]: 1,
-	[Area.KAERNTEN]: 2,
-	[Area.NIEDEROESTERREICH]: 3,
-	[Area.OBEROESTERREICH]: 4,
-	[Area.SALZBURG]: 5,
-	[Area.STEIERMARK]: 6,
-	[Area.TIROL]: 7,
-	[Area.VORARLBERG]: 8,
-	[Area.WIEN]: 900,
+export const WILLHABEN_HUNTER_AREA_ID_MAP: Record<WillhabenHunterArea, number> = {
+	[WillhabenHunterArea.BURGENLAND]: 1,
+	[WillhabenHunterArea.KAERNTEN]: 2,
+	[WillhabenHunterArea.NIEDEROESTERREICH]: 3,
+	[WillhabenHunterArea.OBEROESTERREICH]: 4,
+	[WillhabenHunterArea.SALZBURG]: 5,
+	[WillhabenHunterArea.STEIERMARK]: 6,
+	[WillhabenHunterArea.TIROL]: 7,
+	[WillhabenHunterArea.VORARLBERG]: 8,
+	[WillhabenHunterArea.WIEN]: 900,
 };
 
 /**
  * Supported sort orders for search results.
  */
-export enum SortOrder {
+export enum WillhabenHunterSortOrder {
 	RELEVANCE = "relevance",
 	NEWEST = "newest",
 	PRICE_ASC = "price-asc",
@@ -62,36 +62,37 @@ export enum SortOrder {
 }
 
 /** Maps SortOrder values to willhaben URL sort parameter values. */
-export const sortParamMap: Record<SortOrder, string | undefined> = {
-	[SortOrder.RELEVANCE]: undefined,
-	[SortOrder.NEWEST]: "1",
-	[SortOrder.PRICE_ASC]: "2",
-	[SortOrder.PRICE_DESC]: "3",
-};
+export const WILLHABEN_HUNTER_SORT_PARAM_MAP: Record<WillhabenHunterSortOrder, string | undefined> =
+	{
+		[WillhabenHunterSortOrder.RELEVANCE]: undefined,
+		[WillhabenHunterSortOrder.NEWEST]: "1",
+		[WillhabenHunterSortOrder.PRICE_ASC]: "2",
+		[WillhabenHunterSortOrder.PRICE_DESC]: "3",
+	};
 
-/** Maps district numbers (1–23) to ViennaDistrict enum values. */
-export const districtNumberMap: Record<number, ViennaDistrict> = {
-	1: ViennaDistrict.INNERE_STADT,
-	2: ViennaDistrict.LEOPOLDSTADT,
-	3: ViennaDistrict.LANDSTRASSE,
-	4: ViennaDistrict.WIEDEN,
-	5: ViennaDistrict.MARGARETEN,
-	6: ViennaDistrict.MARIAHILF,
-	7: ViennaDistrict.NEUBAU,
-	8: ViennaDistrict.JOSEFSTADT,
-	9: ViennaDistrict.ALSERGRUND,
-	10: ViennaDistrict.FAVORITEN,
-	11: ViennaDistrict.SIMMERING,
-	12: ViennaDistrict.MEIDLING,
-	13: ViennaDistrict.HIETZING,
-	14: ViennaDistrict.PENZING,
-	15: ViennaDistrict.RUDOLFSHEIM_FUNFHAUS,
-	16: ViennaDistrict.OTTAKRING,
-	17: ViennaDistrict.HERNALS,
-	18: ViennaDistrict.WAHRING,
-	19: ViennaDistrict.DOBLING,
-	20: ViennaDistrict.BRIGITTENAU,
-	21: ViennaDistrict.FLORIDSDORF,
-	22: ViennaDistrict.DONAUSTADT,
-	23: ViennaDistrict.LIESING,
+/** Maps district numbers (1–23) to WillhabenHunterViennaDistrict enum values. */
+export const WILLHABEN_DISTRICT_NUMBER_MAP: Record<number, WillhabenHunterViennaDistrict> = {
+	1: WillhabenHunterViennaDistrict.INNERE_STADT,
+	2: WillhabenHunterViennaDistrict.LEOPOLDSTADT,
+	3: WillhabenHunterViennaDistrict.LANDSTRASSE,
+	4: WillhabenHunterViennaDistrict.WIEDEN,
+	5: WillhabenHunterViennaDistrict.MARGARETEN,
+	6: WillhabenHunterViennaDistrict.MARIAHILF,
+	7: WillhabenHunterViennaDistrict.NEUBAU,
+	8: WillhabenHunterViennaDistrict.JOSEFSTADT,
+	9: WillhabenHunterViennaDistrict.ALSERGRUND,
+	10: WillhabenHunterViennaDistrict.FAVORITEN,
+	11: WillhabenHunterViennaDistrict.SIMMERING,
+	12: WillhabenHunterViennaDistrict.MEIDLING,
+	13: WillhabenHunterViennaDistrict.HIETZING,
+	14: WillhabenHunterViennaDistrict.PENZING,
+	15: WillhabenHunterViennaDistrict.RUDOLFSHEIM_FUNFHAUS,
+	16: WillhabenHunterViennaDistrict.OTTAKRING,
+	17: WillhabenHunterViennaDistrict.HERNALS,
+	18: WillhabenHunterViennaDistrict.WAHRING,
+	19: WillhabenHunterViennaDistrict.DOBLING,
+	20: WillhabenHunterViennaDistrict.BRIGITTENAU,
+	21: WillhabenHunterViennaDistrict.FLORIDSDORF,
+	22: WillhabenHunterViennaDistrict.DONAUSTADT,
+	23: WillhabenHunterViennaDistrict.LIESING,
 };

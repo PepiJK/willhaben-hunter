@@ -1,10 +1,18 @@
 import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
-import { CONCURRENCY_LIMIT, DETAIL_CONCURRENCY } from "../app.const";
-import { chunkArray } from "../utils/utils";
-import { Area, areaIdMap, sortParamMap, ViennaDistrict } from "./scraper.const";
-import { ScrapeOptions, WillhabenItem } from "./scraper.interface";
+import {
+	WILLHABEN_HUNTER_CONCURRENCY_LIMIT,
+	WILLHABEN_HUNTER_DETAIL_CONCURRENCY,
+} from "../app.const";
+import { WillhabenHunterChunkArray } from "../utils/utils";
+import {
+	WILLHABEN_HUNTER_AREA_ID_MAP,
+	WILLHABEN_HUNTER_SORT_PARAM_MAP,
+	WillhabenHunterArea,
+	WillhabenHunterViennaDistrict,
+} from "./scraper.const";
+import { WillhabenHunterItem, WillhabenHunterScrapeOptions } from "./scraper.interface";
 
 // Register the stealth plugin
 chromium.use(stealth());
@@ -19,7 +27,7 @@ export class WillhabenHunterScraper {
 	 * @param options - The scrape options to use.
 	 * @returns An array of Willhaben items.
 	 */
-	public async scrape(options: ScrapeOptions): Promise<WillhabenItem[]> {
+	public async scrape(options: WillhabenHunterScrapeOptions): Promise<WillhabenHunterItem[]> {
 		// Launch browser in headless mode
 		const browser = await chromium.launch({ headless: true });
 
@@ -73,7 +81,10 @@ export class WillhabenHunterScraper {
 				}
 
 				// Chunk fetching to max concurrent pages
-				const chunks = chunkArray(remainingPages, CONCURRENCY_LIMIT);
+				const chunks = WillhabenHunterChunkArray(
+					remainingPages,
+					WILLHABEN_HUNTER_CONCURRENCY_LIMIT,
+				);
 
 				for (const chunk of chunks) {
 					if (options.onProgress) {
@@ -112,7 +123,10 @@ export class WillhabenHunterScraper {
 					options.onProgress(`Fetching details for ${allItems.length} items...`);
 				}
 
-				const detailChunks = chunkArray(allItems, DETAIL_CONCURRENCY);
+				const detailChunks = WillhabenHunterChunkArray(
+					allItems,
+					WILLHABEN_HUNTER_DETAIL_CONCURRENCY,
+				);
 
 				let processedCount = 0;
 				for (const chunk of detailChunks) {
@@ -154,7 +168,7 @@ export class WillhabenHunterScraper {
 	 * @param options - The scrape options to use.
 	 * @returns The generated Willhaben search URL string.
 	 */
-	public buildUrl(options: ScrapeOptions): string {
+	public buildUrl(options: WillhabenHunterScrapeOptions): string {
 		const params = new URLSearchParams();
 		params.append("keyword", options.query);
 		params.append("isNavigation", "true");
@@ -169,13 +183,17 @@ export class WillhabenHunterScraper {
 
 		if (options.area && options.area.length > 0) {
 			for (const a of options.area) {
-				if (a === Area.WIEN && options.wienDistricts && options.wienDistricts.length > 0) {
+				if (
+					a === WillhabenHunterArea.WIEN &&
+					options.wienDistricts &&
+					options.wienDistricts.length > 0
+				) {
 					// Add specific district IDs instead of generic Wien ID
 					for (const district of options.wienDistricts) {
 						params.append("areaId", this._getWienDistrictId(district).toString());
 					}
 				} else {
-					const id = areaIdMap[a];
+					const id = WILLHABEN_HUNTER_AREA_ID_MAP[a];
 					if (id !== undefined) {
 						params.append("areaId", id.toString());
 					}
@@ -184,7 +202,7 @@ export class WillhabenHunterScraper {
 		}
 
 		if (options.sort) {
-			const sortValue = sortParamMap[options.sort];
+			const sortValue = WILLHABEN_HUNTER_SORT_PARAM_MAP[options.sort];
 			if (sortValue) {
 				params.append("sort", sortValue);
 			}
@@ -203,7 +221,7 @@ export class WillhabenHunterScraper {
 	private async _scrapeSinglePage(
 		browser: Browser,
 		url: string,
-	): Promise<{ items: WillhabenItem[]; totalResultsText: string }> {
+	): Promise<{ items: WillhabenHunterItem[]; totalResultsText: string }> {
 		const page = await browser.newPage();
 		await this._blockUnnecessaryResources(page);
 		try {
@@ -268,7 +286,7 @@ export class WillhabenHunterScraper {
 			});
 
 			return {
-				items: items.filter((item) => item.id && item.title) as WillhabenItem[],
+				items: items.filter((item) => item.id && item.title) as WillhabenHunterItem[],
 				totalResultsText,
 			};
 		} finally {
@@ -282,7 +300,7 @@ export class WillhabenHunterScraper {
 	 * @param district - The Vienna district.
 	 * @returns The district ID.
 	 */
-	private _getWienDistrictId(district: ViennaDistrict): number {
+	private _getWienDistrictId(district: WillhabenHunterViennaDistrict): number {
 		const match = district.match(/^(\d+)\./);
 		if (match && match[1]) {
 			const num = parseInt(match[1], 10);

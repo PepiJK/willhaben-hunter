@@ -1,10 +1,14 @@
-import { Area, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
 import { OutputFormat } from "../exporter/exporter.interface";
+import {
+	WillhabenHunterArea,
+	WillhabenHunterSortOrder,
+	WillhabenHunterViennaDistrict,
+} from "../scraper/scraper.const";
 
 /**
  * Steps for the interactive CLI prompts, mapped to CliSearchOptions keys.
  */
-export enum CliPromptStep {
+export enum WillhabenHunterCliPromptStep {
 	QUERY = "query",
 	PRICE_MIN = "priceMin",
 	PRICE_MAX = "priceMax",
@@ -20,12 +24,12 @@ export interface CliSearchOptions {
 	query?: string;
 	priceMin?: number;
 	priceMax?: number;
-	area?: Area[];
-	wienDistricts?: ViennaDistrict[];
+	area?: WillhabenHunterArea[];
+	wienDistricts?: WillhabenHunterViennaDistrict[];
 	limit?: number;
 	format?: OutputFormat;
 	output?: string;
-	sort?: SortOrder | undefined;
+	sort?: WillhabenHunterSortOrder | undefined;
 	skipDetails?: boolean | undefined;
 	quiet?: boolean | undefined;
 	failOnEmpty?: boolean | undefined;

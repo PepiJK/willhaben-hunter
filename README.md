@@ -1,6 +1,9 @@
 # Willhaben Hunter
 
-A Node.js/TypeScript CLI scraper for [willhaben.at](https://willhaben.at) marketplace items. Outputs data as JSON (default) or CSV, with strict `stdout`/`stderr` separation for easy piping, LLM analysis, and automation.
+A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhaben.at) marketplace items.
+
+- **As a CLI tool**, it outputs data as JSON (default) or CSV, with strict `stdout`/`stderr` separation for easy piping, LLM analysis, and automation.
+- **As an NPM library**, you can import the core scraping API directly into your Node.js backend to fetch and parse items programmatically.
 
 ## Features
 
@@ -19,26 +22,26 @@ A Node.js/TypeScript CLI scraper for [willhaben.at](https://willhaben.at) market
 
 ## Installation
 
-1.  Clone the repository and install dependencies:
+To use the CLI globally, install the package:
 
-    ```bash
-    npm install
-    ```
+```bash
+npm install -g willhaben-hunter
+```
 
-2.  Install Playwright browsers (Chromium is required):
+Install Playwright browsers (Chromium is required by the stealth scraper):
 
-    ```bash
-    npx playwright install chromium
-    ```
+```bash
+npx playwright install chromium
+```
 
 ## Usage
 
 ```bash
 # Interactive — prompts for any missing options
-npm start search
+willhaben-hunter search
 
 # Non-interactive — all arguments supplied, no prompts
-npm start search -- -q "macbook" --limit 10 --non-interactive
+willhaben-hunter search -q "macbook" --limit 10 --non-interactive
 ```
 
 ### `search` Command Options
@@ -53,7 +56,7 @@ npm start search -- -q "macbook" --limit 10 --non-interactive
 | `--limit <number>`           | `-l`  | Maximum number of items to return.                                                                                                                     |
 | `--format <type>`            | `-f`  | Output format: `json` or `csv`. Default: `json`.                                                                                                       |
 | `--output <path>`            | `-o`  | Write output to a file instead of `stdout`.                                                                                                            |
-| `--sort <order>`             | `-s`  | Sort order: `relevance`, `newest`, `price-asc`, `price-desc`. Omitting this uses willhaben's default sort.                                             |
+| `--sort <order>`             | `-s`  | WillhabenHunterSort order: `relevance`, `newest`, `price-asc`, `price-desc`. Omitting this uses willhaben's default sort.                              |
 | `--skip-details`             |       | Skip fetching individual item detail pages (much faster, but `description` and `attributes` will be empty).                                            |
 | `--quiet`                    |       | Suppress the summary block on `stderr`. Only the data payload is printed.                                                                              |
 | `--fail-on-empty`            |       | Exit with code `1` when no results are found (useful for CI/monitoring scripts).                                                                       |
@@ -82,28 +85,22 @@ Each scraped item is a JSON object with the following fields:
 
 The CLI cleanly separates data (`stdout`) from UI (`stderr`). This makes it ideal for piping into tools like `jq`, feeding to LLMs, or integrating into automation scripts.
 
-> **💡 Tip:** When piping output, prefer running via `npx ts-node` instead of `npm start`. The `npm` runner injects a startup banner into `stdout` that breaks JSON parsers. If you must use `npm start`, add the `--silent` flag:
->
-> ```bash
-> npm start --silent search -- -q "sofa" --limit 5 | jq '.[].price'
-> ```
-
 ### Example: Pipe JSON to `jq`
 
 ```bash
-npx ts-node src/cli.ts search -q "sofa" --limit 5 --non-interactive | jq '.[].price'
+willhaben-hunter search -q "sofa" --limit 5 --non-interactive | jq '.[].price'
 ```
 
 ### Example: Export CSV to a file (no UI clutter)
 
 ```bash
-npx ts-node src/cli.ts search -q "sofa" -f csv -o results.csv --quiet --non-interactive
+willhaben-hunter search -q "sofa" -f csv -o results.csv --quiet --non-interactive
 ```
 
 ### Example: Search in specific Vienna districts
 
 ```bash
-npx ts-node src/cli.ts search -q "fahrrad" -a wien --wien-districts 10 15 20 --non-interactive
+willhaben-hunter search -q "fahrrad" -a wien --wien-districts 10 15 20 --non-interactive
 ```
 
 ### Non-TTY Summary Output
@@ -121,7 +118,7 @@ This project includes a skill definition for AI coding agents (e.g., Antigravity
 The skill teaches agents how to correctly invoke the CLI as a background task. Key rules for agents:
 
 1. **Always use `--non-interactive`** — Without it, the CLI will hang waiting for user input in non-TTY environments.
-2. **Prefer `npx ts-node src/cli.ts`** — Avoids `npm` startup banner noise that corrupts `stdout` JSON.
+2. **Avoid npm start** — Run the built CLI (`willhaben-hunter search`) or use `npx ts-node src/cli.ts search` if working within the local source code repository. Using `npm start` injects banners that corrupt JSON stdout.
 3. **Use `-o <path>` for large results** — Write output to a file and read it via file tools, instead of flooding the conversation context with large `stdout` payloads.
 
 ## Programmatic Usage (Core API)
