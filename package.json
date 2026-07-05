@@ -1,7 +1,7 @@
 {
 	"name": "willhaben-hunter",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Node.js/TypeScript CLI scraper & library for willhaben.at — JSON/CSV output, stealth scraping, LLM-friendly",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"bin": {
@@ -19,8 +19,17 @@
 		"lint": "eslint src tests",
 		"prepare": "husky"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": [
+		"typescript",
+		"nodejs",
+		"cli",
+		"scraper",
+		"willhaben",
+		"playwright",
+		"web-scraping",
+		"austria"
+	],
+	"author": "PepiJK",
 	"license": "MIT",
 	"type": "commonjs",
 	"dependencies": {

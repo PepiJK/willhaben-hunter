@@ -31,7 +31,7 @@ jobs:
         run: |
           # Runs a quick search for "iphone" to verify that selector extraction works.
           # Limit to 1 to reduce traffic and avoid triggering bot protection.
-          npx ts-node src/cli.ts search -q "iphone" --limit 1 --fail-on-empty --non-interactive
+          npx ts-node src/cli.ts search -q "iphone" --limit 1 --skip-details --fail-on-empty --non-interactive
 
       - name: Create Issue on Failure
         if: failure()

@@ -1,5 +1,7 @@
 # Willhaben Hunter
 
+[![CI](https://github.com/PepiJK/willhaben-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/PepiJK/willhaben-hunter/actions/workflows/ci.yml)
+
 A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhaben.at) marketplace items.
 
 - **As a CLI tool**, it outputs data as JSON (default) or CSV, with strict `stdout`/`stderr` separation for easy piping, LLM analysis, and automation.
@@ -17,7 +19,7 @@ A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhabe
 
 ## Prerequisites
 
-- Node.js (v18+ recommended)
+- Node.js (v22+ recommended)
 - npm
 
 ## Installation
