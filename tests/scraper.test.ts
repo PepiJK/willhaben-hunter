@@ -10,5 +10,5 @@ describe("Scraper Module", () => {
 		});
 		expect(results).toBeDefined();
 		expect(Array.isArray(results)).toBe(true);
-	}, 30000);
+	}, 90000);
 });

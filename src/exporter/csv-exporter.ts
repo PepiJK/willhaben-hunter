@@ -16,7 +16,7 @@ const CSV_HEADERS = [
 /**
  * Class for exporting data to CSV.
  */
-export class CsvExporter {
+export class WillhabenHunterCsvExporter {
 	/**
 	 * Exports an array of items to a CSV file.
 	 *

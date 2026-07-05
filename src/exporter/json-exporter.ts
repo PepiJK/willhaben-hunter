@@ -5,7 +5,7 @@ import { WillhabenItem } from "../scraper/scraper.interface";
 /**
  * Class for exporting data as JSON.
  */
-export class JsonExporter {
+export class WillhabenHunterJsonExporter {
 	/**
 	 * Exports an array of items to a JSON file.
 	 *

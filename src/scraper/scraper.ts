@@ -1,8 +1,8 @@
 import { Browser, Page } from "playwright";
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
-import { chunkArray } from "../utils/utils";
 import { CONCURRENCY_LIMIT, DETAIL_CONCURRENCY, ITEMS_PER_PAGE } from "../app.const";
+import { chunkArray } from "../utils/utils";
 import { Area, areaIdMap, sortParamMap, ViennaDistrict } from "./scraper.const";
 import { ScrapeOptions, WillhabenItem } from "./scraper.interface";
 
@@ -99,10 +99,6 @@ export class WillhabenHunterScraper {
 					await new Promise((resolve) => setTimeout(resolve, 1000));
 				}
 			}
-
-			// Filter items by query (case insensitive)
-			const queryLower = options.query.toLowerCase();
-			allItems = allItems.filter((item) => item.title.toLowerCase().includes(queryLower));
 
 			// Apply final limit if needed
 			if (options.limit !== undefined && allItems.length > options.limit) {

@@ -3,7 +3,7 @@ import { Command, InvalidArgumentError, Option } from "commander";
 import ora from "ora";
 import * as path from "path";
 import pc from "picocolors";
-import { Exporter } from "../exporter/exporter";
+import { WillhabenHunterExporter } from "../exporter/exporter";
 import { ExportOptions, OutputFormat } from "../exporter/exporter.interface";
 import { WillhabenHunterScraper } from "../scraper/scraper";
 import { Area, districtNumberMap, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
@@ -281,7 +281,7 @@ export class WillhabenHunterCli {
 			let exportPath: string | undefined;
 
 			if (results.length > 0) {
-				exportPath = await Exporter.export(results, exportOptions);
+				exportPath = await WillhabenHunterExporter.export(results, exportOptions);
 			}
 
 			const endTime = performance.now();

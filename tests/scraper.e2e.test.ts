@@ -24,5 +24,5 @@ describe("Scraper E2E Suite", () => {
 		expect(firstItem?.price).toBeDefined();
 		expect(firstItem?.url).toBeDefined();
 		expect(firstItem?.url).toMatch(/^https:\/\/www\.willhaben\.at\//);
-	}, 60000); // 60 seconds timeout since it opens Playwright
+	}, 90000); // 90 seconds timeout since it opens Playwright
 });

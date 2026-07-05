@@ -1,12 +1,12 @@
 import { WillhabenItem } from "../scraper/scraper.interface";
-import { CsvExporter } from "./csv-exporter";
+import { WillhabenHunterCsvExporter } from "./csv-exporter";
 import { ExportOptions } from "./exporter.interface";
-import { JsonExporter } from "./json-exporter";
+import { WillhabenHunterJsonExporter } from "./json-exporter";
 
 /**
  * Facade for exporting scraped results in various formats and destinations.
  */
-export class Exporter {
+export class WillhabenHunterExporter {
 	/**
 	 * Exports items based on the given options.
 	 *
@@ -22,9 +22,9 @@ export class Exporter {
 		options: ExportOptions,
 	): Promise<string | undefined> {
 		if (options.outputPath) {
-			return Exporter._exportToFile(items, options);
+			return WillhabenHunterExporter._exportToFile(items, options);
 		}
-		return Exporter._exportToConsole(items, options);
+		return WillhabenHunterExporter._exportToConsole(items, options);
 	}
 
 	private static async _exportToFile(
@@ -34,9 +34,9 @@ export class Exporter {
 		const outputPath = options.outputPath!;
 
 		if (options.format === "csv") {
-			await CsvExporter.exportToFile(items, outputPath);
+			await WillhabenHunterCsvExporter.exportToFile(items, outputPath);
 		} else {
-			await JsonExporter.exportToFile(items, outputPath);
+			await WillhabenHunterJsonExporter.exportToFile(items, outputPath);
 		}
 
 		return outputPath;
@@ -45,8 +45,8 @@ export class Exporter {
 	private static _exportToConsole(items: WillhabenItem[], options: ExportOptions): undefined {
 		const output =
 			options.format === "csv"
-				? CsvExporter.toConsoleString(items)
-				: JsonExporter.toConsoleString(items);
+				? WillhabenHunterCsvExporter.toConsoleString(items)
+				: WillhabenHunterJsonExporter.toConsoleString(items);
 
 		process.stdout.write(output);
 		return undefined;

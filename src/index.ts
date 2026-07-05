@@ -4,5 +4,5 @@ export * from "./scraper/scraper.interface";
 export * from "./scraper/scraper.const";
 
 // Export Utilities
-export { Exporter } from "./exporter/exporter";
+export { WillhabenHunterExporter } from "./exporter/exporter";
 export * from "./exporter/exporter.interface";

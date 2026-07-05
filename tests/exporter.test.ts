@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CsvExporter } from "../src/exporter/csv-exporter";
-import { Exporter } from "../src/exporter/exporter";
-import { JsonExporter } from "../src/exporter/json-exporter";
+import { WillhabenHunterCsvExporter } from "../src/exporter/csv-exporter";
+import { WillhabenHunterExporter } from "../src/exporter/exporter";
+import { WillhabenHunterJsonExporter } from "../src/exporter/json-exporter";
 import { WillhabenItem } from "../src/scraper/scraper.interface";
 
 vi.mock("fs", async () => {
@@ -33,35 +33,37 @@ const sampleItems: WillhabenItem[] = [
 	{ id: "456", title: "Test Item 2", price: "200", url: "https://example.com/2" },
 ];
 
-describe("CsvExporter", () => {
+describe("WillhabenHunterCsvExporter", () => {
 	afterEach(() => {
 		vi.clearAllMocks();
 	});
 
 	it("should export items to a csv file without throwing errors", async () => {
-		await expect(CsvExporter.exportToFile(sampleItems, "test.csv")).resolves.toBeUndefined();
+		await expect(
+			WillhabenHunterCsvExporter.exportToFile(sampleItems, "test.csv"),
+		).resolves.toBeUndefined();
 	});
 
 	it("should return a CSV string for console output", () => {
-		const result = CsvExporter.toConsoleString(sampleItems);
+		const result = WillhabenHunterCsvExporter.toConsoleString(sampleItems);
 		expect(result).toContain("ID,TITLE,PRICE,URL,DESCRIPTION,ATTRIBUTES");
 		expect(result).toContain("123");
 	});
 });
 
-describe("JsonExporter", () => {
+describe("WillhabenHunterJsonExporter", () => {
 	afterEach(() => {
 		vi.clearAllMocks();
 	});
 
 	it("should export items to a JSON file without throwing errors", async () => {
 		await expect(
-			JsonExporter.exportToFile(sampleItems, "output/test.json"),
+			WillhabenHunterJsonExporter.exportToFile(sampleItems, "output/test.json"),
 		).resolves.toBeUndefined();
 	});
 
 	it("should return a formatted JSON string for console output", () => {
-		const result = JsonExporter.toConsoleString(sampleItems);
+		const result = WillhabenHunterJsonExporter.toConsoleString(sampleItems);
 		const parsed = JSON.parse(result);
 		expect(parsed).toHaveLength(2);
 		expect(parsed[0].id).toBe("123");
@@ -69,14 +71,16 @@ describe("JsonExporter", () => {
 	});
 });
 
-describe("Exporter facade", () => {
+describe("WillhabenHunterExporter facade", () => {
 	afterEach(() => {
 		vi.clearAllMocks();
 	});
 
 	it("should route to JSON file export when format is json and outputPath given", async () => {
-		const spy = vi.spyOn(JsonExporter, "exportToFile").mockResolvedValue(undefined);
-		const result = await Exporter.export(sampleItems, {
+		const spy = vi
+			.spyOn(WillhabenHunterJsonExporter, "exportToFile")
+			.mockResolvedValue(undefined);
+		const result = await WillhabenHunterExporter.export(sampleItems, {
 			format: "json",
 			outputPath: "output/test.json",
 		});
@@ -85,8 +89,10 @@ describe("Exporter facade", () => {
 	});
 
 	it("should route to CSV file export when format is csv and outputPath given", async () => {
-		const spy = vi.spyOn(CsvExporter, "exportToFile").mockResolvedValue(undefined);
-		const result = await Exporter.export(sampleItems, {
+		const spy = vi
+			.spyOn(WillhabenHunterCsvExporter, "exportToFile")
+			.mockResolvedValue(undefined);
+		const result = await WillhabenHunterExporter.export(sampleItems, {
 			format: "csv",
 			outputPath: "output/test.csv",
 		});
@@ -96,7 +102,7 @@ describe("Exporter facade", () => {
 
 	it("should print JSON to stdout when no outputPath and format is json", async () => {
 		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-		const result = await Exporter.export(sampleItems, { format: "json" });
+		const result = await WillhabenHunterExporter.export(sampleItems, { format: "json" });
 		expect(writeSpy).toHaveBeenCalled();
 		const output = writeSpy.mock.calls[0]![0] as string;
 		expect(JSON.parse(output)).toHaveLength(2);
@@ -106,7 +112,7 @@ describe("Exporter facade", () => {
 
 	it("should print CSV to stdout when no outputPath and format is csv", async () => {
 		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-		const result = await Exporter.export(sampleItems, { format: "csv" });
+		const result = await WillhabenHunterExporter.export(sampleItems, { format: "csv" });
 		expect(writeSpy).toHaveBeenCalled();
 		expect(result).toBeUndefined();
 		writeSpy.mockRestore();
