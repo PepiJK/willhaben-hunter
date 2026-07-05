@@ -45,13 +45,17 @@ export class WillhabenHunterExporter {
 	private static _exportToConsole(
 		items: WillhabenHunterItem[],
 		options: WillhabenHunterExportOptions,
-	): undefined {
+	): Promise<undefined> {
 		const output =
 			options.format === "csv"
 				? WillhabenHunterCsvExporter.toConsoleString(items)
 				: WillhabenHunterJsonExporter.toConsoleString(items);
 
-		process.stdout.write(output);
-		return undefined;
+		return new Promise((resolve, reject) => {
+			process.stdout.write(output + "\n", (err) => {
+				if (err) reject(err);
+				else resolve(undefined);
+			});
+		});
 	}
 }

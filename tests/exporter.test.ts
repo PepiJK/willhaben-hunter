@@ -101,7 +101,10 @@ describe("WillhabenHunterExporter facade", () => {
 	});
 
 	it("should print JSON to stdout when no outputPath and format is json", async () => {
-		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk, cb) => {
+			if (typeof cb === "function") cb();
+			return true;
+		});
 		const result = await WillhabenHunterExporter.export(sampleItems, { format: "json" });
 		expect(writeSpy).toHaveBeenCalled();
 		const output = writeSpy.mock.calls[0]![0] as string;
@@ -111,7 +114,10 @@ describe("WillhabenHunterExporter facade", () => {
 	});
 
 	it("should print CSV to stdout when no outputPath and format is csv", async () => {
-		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk, cb) => {
+			if (typeof cb === "function") cb();
+			return true;
+		});
 		const result = await WillhabenHunterExporter.export(sampleItems, { format: "csv" });
 		expect(writeSpy).toHaveBeenCalled();
 		expect(result).toBeUndefined();

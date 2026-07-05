@@ -13,4 +13,4 @@
     - `npm run build`
     - `npm run lint`
     - `npm test`
-    - `npx ts-node src/cli.ts search -q "test" --limit 1 --skip-details --non-interactive`
+    - `npx ts-node src/cli.ts search -q "iphone" --limit 1 --skip-details --fail-on-empty --non-interactive`
