@@ -47,6 +47,12 @@ export class WillhabenScraper {
 				);
 			}
 
+			if (totalResults > 0 && firstPageItems.length === 0) {
+				throw new Error(
+					"No items extracted from the DOM despite search results being present. The Willhaben DOM structure might have changed.",
+				);
+			}
+
 			// Willhaben generally shows ~30 items per page
 			const totalAvailablePages = Math.ceil(totalResults / ITEMS_PER_PAGE);
 
@@ -344,9 +350,11 @@ export class WillhabenScraper {
 			});
 
 			return details;
-		} catch {
-			// Fail gracefully for individual items
-			return { description: "", attributes: "" };
+		} catch (error) {
+			throw new Error(
+				`Failed to scrape item details for ${url}: ${error instanceof Error ? error.message : String(error)}`,
+				{ cause: error },
+			);
 		} finally {
 			await page.close();
 		}
