@@ -323,24 +323,22 @@ export class WillhabenHunterCli {
 			const formattedTime = formatExecutionTime(elapsedSeconds);
 
 			console.error("");
-			console.error(`  🎯 ${pc.bold("Suche:")}       ${scrapeOptions.query}`);
-			console.error(`  📦 ${pc.bold("Gefunden:")}    ${resultCount} Einträge`);
-			console.error(`  📄 ${pc.bold("Format:")}      ${exportOptions.format.toUpperCase()}`);
+			console.error(`  🎯 ${pc.bold("Search:")}       ${scrapeOptions.query}`);
+			console.error(`  📦 ${pc.bold("Found:")}        ${resultCount} items`);
+			console.error(`  📄 ${pc.bold("Format:")}       ${exportOptions.format.toUpperCase()}`);
 
 			if (exportPath) {
 				const resolvedPath = path.resolve(exportPath);
 				console.error(
-					`  💾 ${pc.bold("Datei:")}       ${pc.bold(pc.underline(resolvedPath))}`,
+					`  💾 ${pc.bold("File:")}         ${pc.bold(pc.underline(resolvedPath))}`,
 				);
 			} else if (resultCount > 0) {
-				console.error(`  💾 ${pc.bold("Ausgabe:")}     ${pc.cyan("Konsole (stdout)")}`);
+				console.error(`  💾 ${pc.bold("Output:")}       ${pc.cyan("Console (stdout)")}`);
 			} else {
-				console.error(
-					`  💾 ${pc.bold("Ausgabe:")}     ${pc.yellow("Keine (0 Ergebnisse)")}`,
-				);
+				console.error(`  💾 ${pc.bold("Output:")}       ${pc.yellow("None (0 results)")}`);
 			}
 
-			console.error(`  ⏱️ ${pc.bold("Dauer:")}       ${formattedTime}`);
+			console.error(`  ⏱️ ${pc.bold("Duration:")}     ${formattedTime}`);
 			console.error("");
 		} else {
 			// Structured JSON metadata for non-TTY consumers (LLMs, scripts)
