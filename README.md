@@ -102,7 +102,7 @@ npm run format
 
 **Please note:** This tool is for educational and private research purposes only. It is not affiliated with, authorized, maintained, or endorsed by Willhaben in any way.
 
-Web scraping may violate Willhaben's Terms of Service (AGB). Using this tool to access their platform automatedly is at your own risk. The author is not responsible for any consequences resulting from the use of this software, including but not limited to IP bans, account suspension, or legal actions taken by the platform. Always respect `robots.txt` and rate limits to avoid causing service disruptions.
+Web scraping may violate Willhaben's Terms of Service (AGB). Using this tool to access their platform automated is at your own risk. The author is not responsible for any consequences resulting from the use of this software, including but not limited to IP bans, account suspension, or legal actions taken by the platform. Always respect `robots.txt` and rate limits to avoid causing service disruptions.
 
 ## License
 
