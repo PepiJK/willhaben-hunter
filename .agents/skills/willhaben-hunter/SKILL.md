@@ -17,7 +17,7 @@ When executing the CLI as a background task (e.g., via `run_command`), **you mus
 
 Avoid running the tool using `npm start` in pipeable environments, because `npm` injects its own startup banner into `stdout`, which breaks JSON parsers like `jq`.
 
-- **Correct:** `npx ts-node src/index.ts search ...`
+- **Correct:** `npx ts-node src/cli.ts search ...`
 - **Incorrect:** `npm start search ...`
 
 ### 3. Save Output to Files for Large Results
@@ -31,7 +31,7 @@ If the query is expected to return more than a few results, use the `-o <path>` 
 ### Base Command
 
 ```bash
-npx ts-node src/index.ts search [options]
+npx ts-node src/cli.ts search [options]
 ```
 
 ### Key Options
@@ -53,11 +53,11 @@ npx ts-node src/index.ts search [options]
 ### Scrape and Export to CSV:
 
 ```bash
-npx ts-node src/index.ts search -q "laufband" -a wien --price-max 250 -f csv -o output/laufband.csv --non-interactive
+npx ts-node src/cli.ts search -q "laufband" -a wien --price-max 250 -f csv -o output/laufband.csv --non-interactive
 ```
 
 ### Pipe JSON directly to `jq`:
 
 ```bash
-npx ts-node src/index.ts search -q "sofa" -l 5 --non-interactive | jq '.[].title'
+npx ts-node src/cli.ts search -q "sofa" -l 5 --non-interactive | jq '.[].title'
 ```

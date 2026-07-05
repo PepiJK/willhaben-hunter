@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { WillhabenScraper } from "../src/scraper/scraper";
+import { WillhabenHunterScraper } from "../src/scraper/scraper";
 import { Area, ViennaDistrict } from "../src/scraper/scraper.const";
 
 describe("Scraper E2E Suite", () => {
 	// E2E test to verify pagination, parallel chunking, and Playwright DOM extraction
 	it("should scrape 2 items using smooth scrolling and extract titles and prices", async () => {
-		const scraper = new WillhabenScraper();
+		const scraper = new WillhabenHunterScraper();
 		const results = await scraper.scrape({
 			query: "iphone",
 			limit: 2, // 2 items is enough to prove the array is returned and parsed correctly

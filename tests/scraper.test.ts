@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { WillhabenScraper } from "../src/scraper/scraper";
+import { WillhabenHunterScraper } from "../src/scraper/scraper";
 
 describe("Scraper Module", () => {
 	it("should be defined", async () => {
-		const scraper = new WillhabenScraper();
+		const scraper = new WillhabenHunterScraper();
 		const results = await scraper.scrape({
 			query: "test",
 			limit: 1,

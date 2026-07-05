@@ -1,6 +1,6 @@
 import * as inquirerPrompts from "@inquirer/prompts";
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from "vitest";
-import { CliApp } from "../src/cli/cli";
+import { WillhabenHunterCli } from "../src/cli/cli";
 import { Area, SortOrder, ViennaDistrict } from "../src/scraper/scraper.const";
 
 vi.mock("@inquirer/prompts", () => ({
@@ -8,12 +8,12 @@ vi.mock("@inquirer/prompts", () => ({
 	checkbox: vi.fn(),
 }));
 
-describe("CliApp - Interactive Prompts & Inputs", () => {
+describe("WillhabenHunterCli - Interactive Prompts & Inputs", () => {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let app: any;
 
 	beforeEach(() => {
-		app = new CliApp();
+		app = new WillhabenHunterCli();
 		vi.clearAllMocks();
 	});
 

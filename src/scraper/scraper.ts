@@ -12,7 +12,7 @@ chromium.use(stealth());
 /**
  * Class representing the Willhaben scraper.
  */
-export class WillhabenScraper {
+export class WillhabenHunterScraper {
 	/**
 	 * Scrapes willhaben.at based on the provided options.
 	 *

@@ -10,7 +10,6 @@
 		"sourceMap": true,
 		"declaration": true,
 		"noUncheckedIndexedAccess": true,
-		"exactOptionalPropertyTypes": true,
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,

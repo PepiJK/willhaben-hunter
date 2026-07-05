@@ -1,15 +1,8 @@
-import { CliApp } from "./cli/cli";
+// Core Scraping API
+export { WillhabenHunterScraper } from "./scraper/scraper";
+export * from "./scraper/scraper.interface";
+export * from "./scraper/scraper.const";
 
-// Handle EPIPE errors gracefully when piping to commands that close early (like jq or head)
-process.stdout.on("error", (err: NodeJS.ErrnoException) => {
-	if (err.code === "EPIPE") {
-		process.exit(0);
-	}
-});
-
-// Execute the CLI
-const app = new CliApp();
-app.run(process.argv).catch((error) => {
-	console.error("Fatal Error:", error);
-	process.exit(1);
-});
+// Export Utilities
+export { Exporter } from "./exporter/exporter";
+export * from "./exporter/exporter.interface";

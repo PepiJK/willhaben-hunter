@@ -5,7 +5,7 @@ import * as path from "path";
 import pc from "picocolors";
 import { Exporter } from "../exporter/exporter";
 import { ExportOptions, OutputFormat } from "../exporter/exporter.interface";
-import { WillhabenScraper } from "../scraper/scraper";
+import { WillhabenHunterScraper } from "../scraper/scraper";
 import { Area, districtNumberMap, SortOrder, ViennaDistrict } from "../scraper/scraper.const";
 import { ScrapeOptions } from "../scraper/scraper.interface";
 import { formatExecutionTime } from "../utils/utils";
@@ -14,13 +14,13 @@ import { CliPromptStep, CliSearchOptions } from "./cli.interface";
 /**
  * Main application class handling the CLI interface and orchestrating the scraping process.
  */
-export class CliApp {
+export class WillhabenHunterCli {
 	private _program: Command;
-	private _scraper: WillhabenScraper;
+	private _scraper: WillhabenHunterScraper;
 
 	constructor() {
 		this._program = new Command();
-		this._scraper = new WillhabenScraper();
+		this._scraper = new WillhabenHunterScraper();
 	}
 
 	/**

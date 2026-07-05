@@ -91,19 +91,19 @@ The CLI cleanly separates data (`stdout`) from UI (`stderr`). This makes it idea
 ### Example: Pipe JSON to `jq`
 
 ```bash
-npx ts-node src/index.ts search -q "sofa" --limit 5 --non-interactive | jq '.[].price'
+npx ts-node src/cli.ts search -q "sofa" --limit 5 --non-interactive | jq '.[].price'
 ```
 
 ### Example: Export CSV to a file (no UI clutter)
 
 ```bash
-npx ts-node src/index.ts search -q "sofa" -f csv -o results.csv --quiet --non-interactive
+npx ts-node src/cli.ts search -q "sofa" -f csv -o results.csv --quiet --non-interactive
 ```
 
 ### Example: Search in specific Vienna districts
 
 ```bash
-npx ts-node src/index.ts search -q "fahrrad" -a wien --wien-districts 10 15 20 --non-interactive
+npx ts-node src/cli.ts search -q "fahrrad" -a wien --wien-districts 10 15 20 --non-interactive
 ```
 
 ### Non-TTY Summary Output
@@ -121,8 +121,20 @@ This project includes a skill definition for AI coding agents (e.g., Antigravity
 The skill teaches agents how to correctly invoke the CLI as a background task. Key rules for agents:
 
 1. **Always use `--non-interactive`** — Without it, the CLI will hang waiting for user input in non-TTY environments.
-2. **Prefer `npx ts-node src/index.ts`** — Avoids `npm` startup banner noise that corrupts `stdout` JSON.
+2. **Prefer `npx ts-node src/cli.ts`** — Avoids `npm` startup banner noise that corrupts `stdout` JSON.
 3. **Use `-o <path>` for large results** — Write output to a file and read it via file tools, instead of flooding the conversation context with large `stdout` payloads.
+
+## Programmatic Usage (Core API)
+
+You can also install this package and use the core scraping logic directly in your Node.js application, without the CLI overhead:
+
+```typescript
+import { WillhabenHunterScraper } from "willhaben-hunter";
+
+const scraper = new WillhabenHunterScraper();
+const results = await scraper.scrape({ query: "Toaster", limit: 5 });
+console.log(results);
+```
 
 ## Development
 
