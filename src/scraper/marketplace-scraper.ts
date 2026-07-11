@@ -12,23 +12,24 @@ import {
 	WillhabenHunterArea,
 	WillhabenHunterViennaDistrict,
 } from "./scraper.const";
-import { WillhabenHunterItem, WillhabenHunterScrapeOptions } from "./scraper.interface";
+import { WillhabenHunterItem, WillhabenHunterMarketplaceScrapeOptions } from "./scraper.interface";
 
 // Register the stealth plugin
 chromium.use(stealth());
 
 /**
- * Class representing the Willhaben scraper.
+ * Scraper for willhaben.at marketplace listings (Kaufen & Verkaufen).
  */
-export class WillhabenHunterScraper {
+export class WillhabenHunterMarketplaceScraper {
 	/**
-	 * Scrapes willhaben.at based on the provided options.
+	 * Scrapes willhaben.at marketplace based on the provided options.
 	 *
 	 * @param options - The scrape options to use.
-	 * @returns An array of Willhaben items.
+	 * @returns An array of Willhaben marketplace items.
 	 */
-	public async scrape(options: WillhabenHunterScrapeOptions): Promise<WillhabenHunterItem[]> {
-		// Launch browser in headless mode
+	public async scrape(
+		options: WillhabenHunterMarketplaceScrapeOptions,
+	): Promise<WillhabenHunterItem[]> {
 		const browser = await chromium.launch({
 			headless: true,
 			args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -36,127 +37,10 @@ export class WillhabenHunterScraper {
 
 		try {
 			const baseUrl = this.buildUrl(options);
+			let allItems = await this._fetchPaginatedItems(browser, baseUrl, options);
 
-			// Scrape page 1
-			const firstPageUrl = `${baseUrl}&page=1`;
-
-			if (options.onProgress) {
-				options.onProgress(`Scraping page 1...`);
-			}
-
-			const { items: firstPageItems, totalResultsText } = await this._scrapeSinglePage(
-				browser,
-				firstPageUrl,
-			);
-			let allItems = [...firstPageItems];
-
-			// Determine total pages to fetch
-			const totalResults = parseInt(totalResultsText, 10);
-			if (isNaN(totalResults)) {
-				throw new Error(
-					"Could not determine total number of search results. Willhaben UI might have changed.",
-				);
-			}
-
-			if (totalResults > 0 && firstPageItems.length === 0) {
-				throw new Error(
-					"No items extracted from the DOM despite search results being present. The Willhaben DOM structure might have changed.",
-				);
-			}
-
-			// Dynamically determine items per page based on the first page
-			const itemsPerPage = firstPageItems.length > 0 ? firstPageItems.length : 30;
-			const totalAvailablePages = Math.ceil(totalResults / itemsPerPage);
-
-			let pagesToFetch = totalAvailablePages;
-			if (options.limit !== undefined) {
-				const maxPagesForLimit = Math.ceil(options.limit / itemsPerPage);
-				pagesToFetch = Math.min(totalAvailablePages, maxPagesForLimit);
-			} else {
-				// No cap, fetch all available pages
-				pagesToFetch = totalAvailablePages;
-			}
-
-			if (pagesToFetch > 1) {
-				const remainingPages = [];
-				for (let p = 2; p <= pagesToFetch; p++) {
-					remainingPages.push(p);
-				}
-
-				// Chunk fetching to max concurrent pages
-				const chunks = WillhabenHunterChunkArray(
-					remainingPages,
-					WILLHABEN_HUNTER_CONCURRENCY_LIMIT,
-				);
-
-				for (const chunk of chunks) {
-					if (options.onProgress) {
-						options.onProgress(
-							`Scraping pages ${chunk.join(", ")} of ${pagesToFetch}... (${allItems.length} items found so far)`,
-						);
-					}
-
-					const promises = chunk.map((p) =>
-						this._scrapeSinglePage(browser, `${baseUrl}&page=${p}`),
-					);
-					const results = await Promise.all(promises);
-
-					for (const res of results) {
-						allItems.push(...res.items);
-					}
-
-					// If we have hit or exceeded the limit, stop early
-					if (options.limit !== undefined && allItems.length >= options.limit) {
-						break;
-					}
-
-					// Short delay between chunks to be nice to the server
-					await new Promise((resolve) => setTimeout(resolve, 1000));
-				}
-			}
-
-			// Apply final limit if needed
-			if (options.limit !== undefined && allItems.length > options.limit) {
-				allItems = allItems.slice(0, options.limit);
-			}
-
-			// Fetch detail pages in parallel chunks
 			if (!options.skipDetails && allItems.length > 0) {
-				if (options.onProgress) {
-					options.onProgress(`Fetching details for ${allItems.length} items...`);
-				}
-
-				const detailChunks = WillhabenHunterChunkArray(
-					allItems,
-					WILLHABEN_HUNTER_DETAIL_CONCURRENCY,
-				);
-
-				let processedCount = 0;
-				for (const chunk of detailChunks) {
-					const promises = chunk.map(async (item) => {
-						if (!item.url) return;
-						try {
-							const details = await this._scrapeItemDetails(browser, item.url);
-							item.description = details.description;
-							item.attributes = details.attributes;
-						} catch (error) {
-							// Log warning and continue so we don't lose all other scraped data
-							const msg = error instanceof Error ? error.message : String(error);
-							console.warn(`\n⚠️ Warning: ${msg}`);
-						}
-					});
-					await Promise.all(promises);
-					processedCount += chunk.length;
-
-					if (options.onProgress) {
-						options.onProgress(
-							`Fetching details... (${processedCount}/${allItems.length})`,
-						);
-					}
-
-					// Small delay to be polite
-					await new Promise((resolve) => setTimeout(resolve, 500));
-				}
+				allItems = await this._fetchAllItemDetails(browser, allItems, options);
 			}
 
 			return allItems;
@@ -166,12 +50,12 @@ export class WillhabenHunterScraper {
 	}
 
 	/**
-	 * Builds the search URL for willhaben.at based on the provided options.
+	 * Builds the search URL for willhaben.at marketplace based on the provided options.
 	 *
 	 * @param options - The scrape options to use.
-	 * @returns The generated Willhaben search URL string.
+	 * @returns The generated Willhaben marketplace search URL string.
 	 */
-	public buildUrl(options: WillhabenHunterScrapeOptions): string {
+	public buildUrl(options: WillhabenHunterMarketplaceScrapeOptions): string {
 		const params = new URLSearchParams();
 		params.append("keyword", options.query);
 		params.append("isNavigation", "true");
@@ -184,25 +68,7 @@ export class WillhabenHunterScraper {
 			params.append("PRICE_TO", options.priceMax.toString());
 		}
 
-		if (options.area && options.area.length > 0) {
-			for (const a of options.area) {
-				if (
-					a === WillhabenHunterArea.WIEN &&
-					options.wienDistricts &&
-					options.wienDistricts.length > 0
-				) {
-					// Add specific district IDs instead of generic Wien ID
-					for (const district of options.wienDistricts) {
-						params.append("areaId", this._getWienDistrictId(district).toString());
-					}
-				} else {
-					const id = WILLHABEN_HUNTER_AREA_ID_MAP[a];
-					if (id !== undefined) {
-						params.append("areaId", id.toString());
-					}
-				}
-			}
-		}
+		this._appendAreaParams(params, options.area, options.wienDistricts);
 
 		if (options.sort) {
 			const sortValue = WILLHABEN_HUNTER_SORT_PARAM_MAP[options.sort];
@@ -215,7 +81,150 @@ export class WillhabenHunterScraper {
 	}
 
 	/**
-	 * Helper to scrape a single page.
+	 * Fetches all paginated list pages and returns the collected items, respecting the limit.
+	 */
+	private async _fetchPaginatedItems(
+		browser: Browser,
+		baseUrl: string,
+		options: WillhabenHunterMarketplaceScrapeOptions,
+	): Promise<WillhabenHunterItem[]> {
+		if (options.onProgress) {
+			options.onProgress(`Scraping page 1...`);
+		}
+
+		const { items: firstPageItems, totalResultsText } = await this._scrapeSinglePage(
+			browser,
+			`${baseUrl}&page=1`,
+		);
+
+		const totalResults = parseInt(totalResultsText, 10);
+		if (isNaN(totalResults)) {
+			throw new Error(
+				"Could not determine total number of search results. Willhaben UI might have changed.",
+			);
+		}
+
+		if (totalResults > 0 && firstPageItems.length === 0) {
+			throw new Error(
+				"No items extracted from the DOM despite search results being present. The Willhaben DOM structure might have changed.",
+			);
+		}
+
+		const itemsPerPage = firstPageItems.length > 0 ? firstPageItems.length : 30;
+		const totalAvailablePages = Math.ceil(totalResults / itemsPerPage);
+		const pagesToFetch =
+			options.limit !== undefined
+				? Math.min(totalAvailablePages, Math.ceil(options.limit / itemsPerPage))
+				: totalAvailablePages;
+
+		let allItems = [...firstPageItems];
+		allItems = await this._fetchRemainingPages(
+			browser,
+			baseUrl,
+			pagesToFetch,
+			allItems,
+			options,
+		);
+
+		if (options.limit !== undefined && allItems.length > options.limit) {
+			allItems = allItems.slice(0, options.limit);
+		}
+
+		return allItems;
+	}
+
+	/**
+	 * Fetches pages 2..N in concurrent chunks and appends them to the existing items array.
+	 */
+	private async _fetchRemainingPages(
+		browser: Browser,
+		baseUrl: string,
+		pagesToFetch: number,
+		initialItems: WillhabenHunterItem[],
+		options: WillhabenHunterMarketplaceScrapeOptions,
+	): Promise<WillhabenHunterItem[]> {
+		if (pagesToFetch <= 1) return initialItems;
+
+		const remainingPages: number[] = [];
+		for (let p = 2; p <= pagesToFetch; p++) {
+			remainingPages.push(p);
+		}
+
+		const chunks = WillhabenHunterChunkArray(
+			remainingPages,
+			WILLHABEN_HUNTER_CONCURRENCY_LIMIT,
+		);
+		const allItems = [...initialItems];
+
+		for (const chunk of chunks) {
+			if (options.onProgress) {
+				options.onProgress(
+					`Scraping pages ${chunk.join(", ")} of ${pagesToFetch}... (${allItems.length} items found so far)`,
+				);
+			}
+
+			const results = await Promise.all(
+				chunk.map((p) => this._scrapeSinglePage(browser, `${baseUrl}&page=${p}`)),
+			);
+
+			for (const res of results) {
+				allItems.push(...res.items);
+			}
+
+			if (options.limit !== undefined && allItems.length >= options.limit) {
+				break;
+			}
+
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+
+		return allItems;
+	}
+
+	/**
+	 * Fetches detail pages for all items in parallel chunks and enriches them.
+	 */
+	private async _fetchAllItemDetails(
+		browser: Browser,
+		items: WillhabenHunterItem[],
+		options: WillhabenHunterMarketplaceScrapeOptions,
+	): Promise<WillhabenHunterItem[]> {
+		if (options.onProgress) {
+			options.onProgress(`Fetching details for ${items.length} items...`);
+		}
+
+		const detailChunks = WillhabenHunterChunkArray(items, WILLHABEN_HUNTER_DETAIL_CONCURRENCY);
+		let processedCount = 0;
+
+		for (const chunk of detailChunks) {
+			await Promise.all(
+				chunk.map(async (item) => {
+					if (!item.url) return;
+					try {
+						const details = await this._scrapeItemDetails(browser, item.url);
+						item.description = details.description;
+						item.attributes = details.attributes;
+					} catch (error) {
+						const msg = error instanceof Error ? error.message : String(error);
+						console.warn(`\n⚠️ Warning: ${msg}`);
+					}
+				}),
+			);
+
+			processedCount += chunk.length;
+
+			if (options.onProgress) {
+				options.onProgress(`Fetching details... (${processedCount}/${items.length})`);
+			}
+
+			await new Promise((resolve) => setTimeout(resolve, 500));
+		}
+
+		return items;
+	}
+
+	/**
+	 * Helper to scrape a single marketplace listing page.
 	 *
 	 * @param browser - The Playwright browser instance.
 	 * @param url - The URL to scrape.
@@ -235,35 +244,36 @@ export class WillhabenHunterScraper {
 			await page.waitForSelector('[data-testid="result-list-title"]', { timeout: 15000 });
 
 			// Smooth scroll down to force lazy load of all items
-			// Faster scrolling: 8 iterations of 1000px with 200ms delay = 1.6s
 			for (let i = 0; i < 8; i++) {
 				await page.evaluate(() => window.scrollBy(0, 1000));
 				await page.waitForTimeout(200);
 			}
 
-			// Look for total results text (only needed on first page, but we'll grab it anyway)
 			const totalResultsText = await page.evaluate(() => {
 				const titleEl = document.querySelector('h1[id="result-list-title"]');
 				if (titleEl && titleEl.textContent) {
-					const match = titleEl.textContent.match(/([\d.]+)/);
+					// Use anchored digit pattern to avoid catastrophic backtracking
+					const match = titleEl.textContent.match(/(\d[\d.]*)/);
 					if (match && match[1]) return match[1].replace(/\./g, "");
 				}
 
 				const bodyText = document.body?.innerText ?? "";
 				const match =
-					bodyText.match(/([\d.]+)\s*Anzeigen/i) ||
-					bodyText.match(/([\d.]+)\s*Angebote/i) ||
-					bodyText.match(/([\d.]+)\s*Treffer/i) ||
-					bodyText.match(/([\d.]+)\s*Ergebnisse/i);
+					// eslint-disable-next-line sonarjs/super-linear-regex
+					bodyText.match(/(\d[\d.]*)\s*Anzeigen/i) ||
+					// eslint-disable-next-line sonarjs/super-linear-regex
+					bodyText.match(/(\d[\d.]*)\s*Angebote/i) ||
+					// eslint-disable-next-line sonarjs/super-linear-regex
+					bodyText.match(/(\d[\d.]*)\s*Treffer/i) ||
+					// eslint-disable-next-line sonarjs/super-linear-regex
+					bodyText.match(/(\d[\d.]*)\s*Ergebnisse/i);
 				return match && match[1] ? match[1].replace(/\./g, "") : "";
 			});
 
-			// Extract items from DOM
 			const items = await page.$$eval('a[id^="search-result-entry-header-"]', (elements) => {
 				return elements.map((el) => {
 					const idMatch = el.id.match(/search-result-entry-header-(\d+)/);
 					const id = idMatch ? idMatch[1] : "";
-
 					const url = el.getAttribute("href") || "";
 
 					const h3 = el.querySelector("h3");
@@ -301,6 +311,34 @@ export class WillhabenHunterScraper {
 	}
 
 	/**
+	 * Appends area/district query parameters to a URLSearchParams instance.
+	 *
+	 * @param params - The URLSearchParams to append to.
+	 * @param area - Optional list of Bundesland areas.
+	 * @param wienDistricts - Optional list of Vienna districts.
+	 */
+	private _appendAreaParams(
+		params: URLSearchParams,
+		area: WillhabenHunterArea[] | undefined,
+		wienDistricts: WillhabenHunterViennaDistrict[] | undefined,
+	): void {
+		if (!area || area.length === 0) return;
+
+		for (const a of area) {
+			if (a === WillhabenHunterArea.WIEN && wienDistricts && wienDistricts.length > 0) {
+				for (const district of wienDistricts) {
+					params.append("areaId", this._getWienDistrictId(district).toString());
+				}
+			} else {
+				const id = WILLHABEN_HUNTER_AREA_ID_MAP[a];
+				if (id !== undefined) {
+					params.append("areaId", id.toString());
+				}
+			}
+		}
+	}
+
+	/**
 	 * Gets the ID for a given Vienna district.
 	 *
 	 * @param district - The Vienna district.
@@ -317,7 +355,7 @@ export class WillhabenHunterScraper {
 	}
 
 	/**
-	 * Scrapes the detail page of a single item.
+	 * Scrapes the detail page of a single marketplace item.
 	 *
 	 * @param browser - The Playwright browser instance.
 	 * @param url - The URL of the item.
@@ -333,16 +371,14 @@ export class WillhabenHunterScraper {
 			await page.goto(url, { waitUntil: "commit", timeout: 60000 });
 			await this._acceptCookiesIfPresent(page);
 
-			const details = await page.evaluate(() => {
+			return await page.evaluate(() => {
 				let description = "";
 				let attributes = "";
 
-				// Attempt to find standard description block
 				const descEl = document.querySelector('[data-testid^="ad-description-"]');
 				if (descEl) {
 					description = (descEl as HTMLElement).innerText.trim();
 				} else {
-					// Fallback for description: try finding content by class or main content
 					const possibleDesc = document.querySelector(
 						'div[class*="description"], p[class*="description"]',
 					);
@@ -351,7 +387,6 @@ export class WillhabenHunterScraper {
 					}
 				}
 
-				// Attempt to find standard attributes block
 				const attrEls = document.querySelectorAll('[data-testid="attribute-item"]');
 				if (attrEls.length > 0) {
 					const attrTexts = Array.from(attrEls)
@@ -366,7 +401,6 @@ export class WillhabenHunterScraper {
 						.filter((t) => t.length > 0);
 					attributes = attrTexts.join(" | ");
 				} else {
-					// Fallback
 					const attrBlock = document.querySelector('[data-testid="ad-attributes"]');
 					if (attrBlock) {
 						attributes = (attrBlock as HTMLElement).innerText
@@ -377,8 +411,6 @@ export class WillhabenHunterScraper {
 
 				return { description, attributes };
 			});
-
-			return details;
 		} catch (error) {
 			throw new Error(
 				`Failed to scrape item details for ${url}: ${error instanceof Error ? error.message : String(error)}`,

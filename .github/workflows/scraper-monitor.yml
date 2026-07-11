@@ -27,19 +27,39 @@ jobs:
       - name: Install Playwright Chromium with dependencies
         run: npx playwright install chromium --with-deps
 
-      - name: Run Scraper Check
+      - name: Run Marketplace Scraper Check
+        id: check_marketplace
         run: |
-          # Runs a quick search for "iphone" to verify that selector extraction works.
+          # Runs a quick search for "iphone" to verify that marketplace selector extraction works.
           # Limit to 1 to reduce traffic and avoid triggering bot protection.
-          npx ts-node src/cli.ts search -q "iphone" --limit 1 --skip-details --fail-on-empty --non-interactive
+          npm start -s -- marketplace -q "iphone" --limit 1 --fail-on-empty --non-interactive
+
+      - name: Run Immo Scraper Check
+        id: check_immo
+        if: success() || failure()
+        run: |
+          # Runs a quick immo search for Mietwohnungen in Wien to verify immo selector extraction.
+          # Limit to 1 to reduce traffic and avoid triggering bot protection.
+          npm start -s -- immo --type wohnung-mieten -a wien --limit 1 --fail-on-empty --non-interactive
 
       - name: Create Issue on Failure
         if: failure()
         uses: actions/github-script@v7
+        env:
+          MARKETPLACE_OUTCOME: ${{ steps.check_marketplace.outcome }}
+          IMMO_OUTCOME: ${{ steps.check_immo.outcome }}
         with:
           script: |
-            const issueTitle = '🚨 Scraper Failure Detected (Potential DOM/Selector Change)';
+            const { MARKETPLACE_OUTCOME, IMMO_OUTCOME } = process.env;
+            const failedScrapers = [];
+            if (MARKETPLACE_OUTCOME === 'failure') failedScrapers.push('Marketplace');
+            if (IMMO_OUTCOME === 'failure') failedScrapers.push('Immo');
+
+            const scraperInfo = failedScrapers.length > 0 ? failedScrapers.join(' and ') : 'Unknown/Setup';
+            const issueTitle = `🚨 Scraper Failure Detected (${scraperInfo})`;
             const issueBody = `The scheduled scraper run failed on **${new Date().toUTCString()}**.
+            
+            **Failed Scraper(s):** ${scraperInfo}
 
             This failure might indicate that Willhaben has changed its DOM structure/selectors or has started blocking the GitHub Actions runner IP.
 

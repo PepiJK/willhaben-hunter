@@ -71,7 +71,7 @@ export const WILLHABEN_HUNTER_SORT_PARAM_MAP: Record<WillhabenHunterSortOrder, s
 	};
 
 /** Maps district numbers (1–23) to WillhabenHunterViennaDistrict enum values. */
-export const WILLHABEN_DISTRICT_NUMBER_MAP: Record<number, WillhabenHunterViennaDistrict> = {
+export const WILLHABEN_HUNTER_DISTRICT_NUMBER_MAP: Record<number, WillhabenHunterViennaDistrict> = {
 	1: WillhabenHunterViennaDistrict.INNERE_STADT,
 	2: WillhabenHunterViennaDistrict.LEOPOLDSTADT,
 	3: WillhabenHunterViennaDistrict.LANDSTRASSE,
@@ -95,4 +95,34 @@ export const WILLHABEN_DISTRICT_NUMBER_MAP: Record<number, WillhabenHunterVienna
 	21: WillhabenHunterViennaDistrict.FLORIDSDORF,
 	22: WillhabenHunterViennaDistrict.DONAUSTADT,
 	23: WillhabenHunterViennaDistrict.LIESING,
+};
+
+/**
+ * Supported real-estate listing types for the immo scraper.
+ */
+export enum WillhabenHunterImmoType {
+	WOHNUNG_MIETEN = "wohnung-mieten",
+	WOHNUNG_KAUFEN = "wohnung-kaufen",
+	HAUS_MIETEN = "haus-mieten",
+	HAUS_KAUFEN = "haus-kaufen",
+}
+
+/** Maps WillhabenHunterImmoType to the URL path segment on willhaben.at/iad/immobilien/. */
+export const WILLHABEN_HUNTER_IMMO_URL_PATH_MAP: Record<WillhabenHunterImmoType, string> = {
+	[WillhabenHunterImmoType.WOHNUNG_MIETEN]: "mietwohnungen/mietwohnung-angebote",
+	[WillhabenHunterImmoType.WOHNUNG_KAUFEN]: "eigentumswohnung/eigentumswohnung-angebote",
+	[WillhabenHunterImmoType.HAUS_MIETEN]: "haus-mieten/haus-mieten-angebote",
+	[WillhabenHunterImmoType.HAUS_KAUFEN]: "haus-kaufen/haus-kaufen-angebote",
+};
+
+/**
+ * Maps a minimum room count (1–5+) to willhaben's NO_OF_ROOMS_BUCKET query value.
+ * Semantics: "at least N rooms".
+ */
+export const WILLHABEN_HUNTER_IMMO_ROOMS_BUCKET_MAP: Record<number, string> = {
+	1: "1X1",
+	2: "2X2",
+	3: "3X3",
+	4: "4X4",
+	5: "5X5",
 };

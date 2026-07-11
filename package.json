@@ -16,6 +16,7 @@
 		"prepublishOnly": "npm run build",
 		"format": "prettier --write .",
 		"test": "vitest run",
+		"test:cov": "vitest run --coverage && make-coverage-badge --output-path ./badges/coverage.svg",
 		"lint": "eslint src tests",
 		"prepare": "husky"
 	},
@@ -31,12 +32,16 @@
 	],
 	"author": "PepiJK",
 	"license": "MIT",
+	"engines": {
+		"node": ">=24.18.0",
+		"npm": ">=11.16.0"
+	},
 	"type": "commonjs",
 	"dependencies": {
 		"@inquirer/prompts": "^8.5.2",
 		"commander": "^15.0.0",
 		"csv-writer": "^1.6.0",
-		"ora": "^5.4.1",
+		"ora": "^9.4.1",
 		"picocolors": "^1.1.1",
 		"playwright": "^1.61.1",
 		"playwright-extra": "^4.3.6",
@@ -44,14 +49,19 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@types/node": "^24.13.2",
-		"eslint": "^10.5.0",
+		"@types/jsdom": "^28.0.3",
+		"@types/node": "^24.1.0",
+		"@vitest/coverage-v8": "^4.1.10",
+		"eslint": "^10.7.0",
+		"eslint-plugin-sonarjs": "^4.1.0",
 		"husky": "^9.1.7",
+		"jsdom": "^29.1.1",
 		"lint-staged": "^17.0.8",
-		"prettier": "^3.8.4",
+		"make-coverage-badge": "^1.2.0",
+		"prettier": "^3.9.5",
 		"ts-node": "^10.9.2",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.62.0",
-		"vitest": "^4.1.9"
+		"typescript-eslint": "^8.63.0",
+		"vitest": "^4.1.10"
 	}
 }
