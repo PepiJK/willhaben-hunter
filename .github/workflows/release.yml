@@ -1,0 +1,63 @@
+name: Release to NPM & GitHub
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create GitHub Release and tags
+      id-token: write # Required for NPM Trusted Publishing
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: Check if version changed
+        id: check
+        run: |
+          PACKAGE_NAME=$(npm pkg get name | tr -d '"')
+          PACKAGE_VERSION=$(npm pkg get version | tr -d '"')
+          
+          PUBLISHED_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "0.0.0")
+          
+          echo "Local version: $PACKAGE_VERSION"
+          echo "NPM version: $PUBLISHED_VERSION"
+          
+          if [ "$PACKAGE_VERSION" != "$PUBLISHED_VERSION" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to NPM
+        if: steps.check.outputs.changed == 'true'
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.check.outputs.version }}
+          name: Release v${{ steps.check.outputs.version }}
+          generate_release_notes: true

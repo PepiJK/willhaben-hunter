@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/PepiJK/willhaben-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/PepiJK/willhaben-hunter/actions/workflows/ci.yml)
 [![Scraper Monitor](https://github.com/PepiJK/willhaben-hunter/actions/workflows/scraper-monitor.yml/badge.svg)](https://github.com/PepiJK/willhaben-hunter/actions/workflows/scraper-monitor.yml)
-![Coverage](./badges/coverage.svg)
+![Coverage](https://raw.githubusercontent.com/PepiJK/willhaben-hunter/main/badges/coverage.svg)
 
 A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhaben.at) — supporting both the **marketplace** (Marktplatz) and **real-estate** (Immobilien) sections.
 

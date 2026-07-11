@@ -1,7 +1,10 @@
 {
 	"name": "willhaben-hunter",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Node.js/TypeScript CLI scraper & library for willhaben.at — JSON/CSV output, stealth scraping, LLM-friendly",
+	"repository": "github:PepiJK/willhaben-hunter",
+	"homepage": "https://github.com/PepiJK/willhaben-hunter#readme",
+	"bugs": "https://github.com/PepiJK/willhaben-hunter/issues",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"bin": {
