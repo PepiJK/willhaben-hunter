@@ -15,6 +15,18 @@ vi.mock("@inquirer/prompts", () => ({
 	select: vi.fn(),
 }));
 
+vi.mock("ora", () => ({
+	default: vi.fn(() => ({
+		start: vi.fn().mockReturnThis(),
+		succeed: vi.fn().mockReturnThis(),
+		fail: vi.fn().mockReturnThis(),
+		warn: vi.fn().mockReturnThis(),
+		info: vi.fn().mockReturnThis(),
+		stop: vi.fn().mockReturnThis(),
+		text: "",
+	})),
+}));
+
 describe("WillhabenHunterCli - Marketplace Interactive Prompts & Inputs", () => {
 	let app: any;
 
