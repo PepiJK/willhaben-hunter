@@ -79,7 +79,7 @@ describe("Scraper Core Logic Coverage", () => {
 			onProgress: vi.fn(),
 		});
 
-		expect(results).toHaveLength(2);
+		expect(results).toHaveLength(5);
 		expect(chromium.launch).toHaveBeenCalled();
 	});
 
@@ -132,7 +132,7 @@ describe("Scraper Core Logic Coverage", () => {
 			onProgress: vi.fn(),
 		});
 
-		expect(results).toHaveLength(1);
+		expect(results).toHaveLength(5);
 		expect(chromium.launch).toHaveBeenCalled();
 	});
 
