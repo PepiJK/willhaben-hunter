@@ -21,7 +21,7 @@ describe("Scraper Core Logic Coverage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		// jsdom doesn't support innerText, so we alias it to textContent for the DOM evaluations
+		// jsdom doesn't support innerText or scrollBy
 		if (
 			typeof HTMLElement !== "undefined" &&
 			!Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerText")
@@ -31,6 +31,9 @@ describe("Scraper Core Logic Coverage", () => {
 					return this.textContent || "";
 				},
 			});
+		}
+		if (typeof window !== "undefined") {
+			window.scrollBy = vi.fn();
 		}
 	});
 
@@ -229,8 +232,10 @@ describe("Scraper Core Logic Coverage", () => {
 		(chromium.launch as any).mockResolvedValue(mockBrowser);
 
 		const scraper = new WillhabenHunterMarketplaceScraper();
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const results = await scraper.scrape({ query: "test" });
 		expect(results).toHaveLength(1); // Should still return the item despite detail fetch error
+		warnSpy.mockRestore();
 	});
 
 	it("should handle error during details fetch without throwing for immo", async () => {
@@ -260,10 +265,12 @@ describe("Scraper Core Logic Coverage", () => {
 		(chromium.launch as any).mockResolvedValue(mockBrowser);
 
 		const scraper = new WillhabenHunterImmoScraper();
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const results = await scraper.scrape({
 			type: WillhabenHunterImmoType.HAUS_MIETEN,
 			onProgress: vi.fn(),
 		});
 		expect(results).toHaveLength(1); // Should still return the item despite detail fetch error
+		warnSpy.mockRestore();
 	});
 });
