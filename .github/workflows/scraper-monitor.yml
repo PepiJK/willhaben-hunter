@@ -58,7 +58,7 @@ jobs:
             const scraperInfo = failedScrapers.length > 0 ? failedScrapers.join(' and ') : 'Unknown/Setup';
             const issueTitle = `🚨 Scraper Failure Detected (${scraperInfo})`;
             const issueBody = `The scheduled scraper run failed on **${new Date().toUTCString()}**.
-            
+
             **Failed Scraper(s):** ${scraperInfo}
 
             This failure might indicate that Willhaben has changed its DOM structure/selectors or has started blocking the GitHub Actions runner IP.

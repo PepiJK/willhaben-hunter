@@ -72,6 +72,7 @@ npm start -s -- immo [options]
     - `wohnung-kaufen` — Eigentumswohnungen
     - `haus-mieten` — Häuser mieten
     - `haus-kaufen` — Häuser kaufen
+    - `grundstueck-kaufen` — Grundstücke kaufen
 - **`-q, --query <string>`**: Optional keyword to search within listings.
 - **`--price-min <number>`** / **`--price-max <number>`**: Price boundaries.
 - **`--rooms <number>`**: Minimum number of rooms (e.g. `3` means 3+ rooms).

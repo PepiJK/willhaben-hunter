@@ -85,24 +85,24 @@ willhaben-hunter immo --type wohnung-mieten --price-max 1200 --rooms 2 -a wien -
 
 ## `immo` Command Options
 
-| Option                       | Short | Description                                                                                                                                  |
-| ---------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--type <type>`              |       | Property listing type. **Required** in non-interactive mode. Valid values: `wohnung-mieten`, `wohnung-kaufen`, `haus-mieten`, `haus-kaufen`. |
-| `--query <string>`           | `-q`  | Optional keyword to search within listings.                                                                                                  |
-| `--price-min <number>`       |       | Minimum price filter.                                                                                                                        |
-| `--price-max <number>`       |       | Maximum price filter.                                                                                                                        |
-| `--rooms <number>`           |       | Minimum number of rooms (e.g. `3` means "3+ rooms").                                                                                         |
-| `--size-min <number>`        |       | Minimum living area in m².                                                                                                                   |
-| `--size-max <number>`        |       | Maximum living area in m².                                                                                                                   |
-| `--area <areas...>`          | `-a`  | Bundesland to search in. Can be specified multiple times.                                                                                    |
-| `--wien-districts <nums...>` |       | Vienna district numbers (1–23). Only effective when `wien` is selected.                                                                      |
-| `--limit <number>`           | `-l`  | Maximum number of listings to return.                                                                                                        |
-| `--format <type>`            | `-f`  | Output format: `json` or `csv`. Default: `json`. CSV includes extra columns: `ROOMS`, `LIVING_AREA`, `PROPERTY_TYPE`.                        |
-| `--output <path>`            | `-o`  | Write output to a file instead of `stdout`.                                                                                                  |
-| `--skip-details`             |       | Skip fetching listing detail pages (much faster, but no Objektinformationen, description, or attributes).                                    |
-| `--quiet`                    |       | Suppress the summary block on `stderr`.                                                                                                      |
-| `--fail-on-empty`            |       | Exit with code `1` when no results are found.                                                                                                |
-| `--non-interactive`          |       | Disable interactive prompts. Requires `--type` to be set.                                                                                    |
+| Option                       | Short | Description                                                                                                                                                        |
+| ---------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--type <type>`              |       | Property listing type. **Required** in non-interactive mode. Valid values: `wohnung-mieten`, `wohnung-kaufen`, `haus-mieten`, `haus-kaufen`, `grundstueck-kaufen`. |
+| `--query <string>`           | `-q`  | Optional keyword to search within listings.                                                                                                                        |
+| `--price-min <number>`       |       | Minimum price filter.                                                                                                                                              |
+| `--price-max <number>`       |       | Maximum price filter.                                                                                                                                              |
+| `--rooms <number>`           |       | Minimum number of rooms (e.g. `3` means "3+ rooms").                                                                                                               |
+| `--size-min <number>`        |       | Minimum living area in m².                                                                                                                                         |
+| `--size-max <number>`        |       | Maximum living area in m².                                                                                                                                         |
+| `--area <areas...>`          | `-a`  | Bundesland to search in. Can be specified multiple times.                                                                                                          |
+| `--wien-districts <nums...>` |       | Vienna district numbers (1–23). Only effective when `wien` is selected.                                                                                            |
+| `--limit <number>`           | `-l`  | Maximum number of listings to return.                                                                                                                              |
+| `--format <type>`            | `-f`  | Output format: `json` or `csv`. Default: `json`. CSV includes extra columns: `ROOMS`, `LIVING_AREA`, `PROPERTY_TYPE`.                                              |
+| `--output <path>`            | `-o`  | Write output to a file instead of `stdout`.                                                                                                                        |
+| `--skip-details`             |       | Skip fetching listing detail pages (much faster, but no Objektinformationen, description, or attributes).                                                          |
+| `--quiet`                    |       | Suppress the summary block on `stderr`.                                                                                                                            |
+| `--fail-on-empty`            |       | Exit with code `1` when no results are found.                                                                                                                      |
+| `--non-interactive`          |       | Disable interactive prompts. Requires `--type` to be set.                                                                                                          |
 
 ---
 
