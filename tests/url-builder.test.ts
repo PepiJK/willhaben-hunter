@@ -106,10 +106,13 @@ describe("Immo URL Builder Suite", () => {
 			"eigentumswohnung/eigentumswohnung-angebote",
 		);
 		expect(scraper.buildUrl({ type: WillhabenHunterImmoType.HAUS_MIETEN })).toContain(
-			"haus-mieten/haus-mieten-angebote",
+			"haus-mieten/haus-angebote",
 		);
 		expect(scraper.buildUrl({ type: WillhabenHunterImmoType.HAUS_KAUFEN })).toContain(
-			"haus-kaufen/haus-kaufen-angebote",
+			"haus-kaufen/haus-angebote",
+		);
+		expect(scraper.buildUrl({ type: WillhabenHunterImmoType.GRUNDSTUECK_KAUFEN })).toContain(
+			"grundstuecke/grundstueck-angebote",
 		);
 	});
 

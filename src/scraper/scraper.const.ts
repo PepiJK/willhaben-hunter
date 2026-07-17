@@ -105,14 +105,16 @@ export enum WillhabenHunterImmoType {
 	WOHNUNG_KAUFEN = "wohnung-kaufen",
 	HAUS_MIETEN = "haus-mieten",
 	HAUS_KAUFEN = "haus-kaufen",
+	GRUNDSTUECK_KAUFEN = "grundstueck-kaufen",
 }
 
 /** Maps WillhabenHunterImmoType to the URL path segment on willhaben.at/iad/immobilien/. */
 export const WILLHABEN_HUNTER_IMMO_URL_PATH_MAP: Record<WillhabenHunterImmoType, string> = {
 	[WillhabenHunterImmoType.WOHNUNG_MIETEN]: "mietwohnungen/mietwohnung-angebote",
 	[WillhabenHunterImmoType.WOHNUNG_KAUFEN]: "eigentumswohnung/eigentumswohnung-angebote",
-	[WillhabenHunterImmoType.HAUS_MIETEN]: "haus-mieten/haus-mieten-angebote",
-	[WillhabenHunterImmoType.HAUS_KAUFEN]: "haus-kaufen/haus-kaufen-angebote",
+	[WillhabenHunterImmoType.HAUS_MIETEN]: "haus-mieten/haus-angebote",
+	[WillhabenHunterImmoType.HAUS_KAUFEN]: "haus-kaufen/haus-angebote",
+	[WillhabenHunterImmoType.GRUNDSTUECK_KAUFEN]: "grundstuecke/grundstueck-angebote",
 };
 
 /**

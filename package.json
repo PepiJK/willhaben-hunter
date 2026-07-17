@@ -1,6 +1,6 @@
 {
 	"name": "willhaben-hunter",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Node.js/TypeScript CLI scraper & library for willhaben.at — JSON/CSV output, stealth scraping, LLM-friendly",
 	"repository": "github:PepiJK/willhaben-hunter",
 	"homepage": "https://github.com/PepiJK/willhaben-hunter#readme",
@@ -18,8 +18,7 @@
 		"build": "tsc -p tsconfig.build.json",
 		"prepublishOnly": "npm run build",
 		"format": "prettier --write .",
-		"test": "vitest run",
-		"test:cov": "vitest run --coverage && make-coverage-badge --output-path ./badges/coverage.svg",
+		"test": "vitest run --coverage && make-coverage-badge --output-path ./badges/coverage.svg",
 		"lint": "eslint src tests",
 		"prepare": "husky"
 	},
