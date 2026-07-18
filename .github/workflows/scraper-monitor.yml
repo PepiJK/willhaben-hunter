@@ -42,18 +42,28 @@ jobs:
           # Limit to 1 to reduce traffic and avoid triggering bot protection.
           npm start -s -- immo --type wohnung-mieten -a wien --limit 1 --fail-on-empty --non-interactive
 
+      - name: Run Jobs Scraper Check
+        id: check_jobs
+        if: success() || failure()
+        run: |
+          # Runs a quick jobs search to verify jobs selector extraction.
+          # Limit to 1 to reduce traffic and avoid triggering bot protection.
+          npm start -s -- jobs -q "developer" --limit 1 --fail-on-empty --non-interactive
+
       - name: Create Issue on Failure
         if: failure()
         uses: actions/github-script@v7
         env:
           MARKETPLACE_OUTCOME: ${{ steps.check_marketplace.outcome }}
           IMMO_OUTCOME: ${{ steps.check_immo.outcome }}
+          JOBS_OUTCOME: ${{ steps.check_jobs.outcome }}
         with:
           script: |
-            const { MARKETPLACE_OUTCOME, IMMO_OUTCOME } = process.env;
+            const { MARKETPLACE_OUTCOME, IMMO_OUTCOME, JOBS_OUTCOME } = process.env;
             const failedScrapers = [];
             if (MARKETPLACE_OUTCOME === 'failure') failedScrapers.push('Marketplace');
             if (IMMO_OUTCOME === 'failure') failedScrapers.push('Immo');
+            if (JOBS_OUTCOME === 'failure') failedScrapers.push('Jobs');
 
             const scraperInfo = failedScrapers.length > 0 ? failedScrapers.join(' and ') : 'Unknown/Setup';
             const issueTitle = `🚨 Scraper Failure Detected (${scraperInfo})`;
