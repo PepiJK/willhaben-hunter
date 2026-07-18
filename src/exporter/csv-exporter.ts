@@ -1,7 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import { createObjectCsvStringifier, createObjectCsvWriter } from "csv-writer";
-import { WillhabenHunterImmoItem, WillhabenHunterItem } from "../scraper/scraper.interface";
+import {
+	WillhabenHunterImmoItem,
+	WillhabenHunterItem,
+	WillhabenHunterJobsItem,
+} from "../scraper/scraper.interface";
 
 /** CSV column headers for WillhabenHunterItem (marketplace) export. */
 const MARKETPLACE_CSV_HEADERS = [
@@ -29,6 +33,24 @@ const IMMO_CSV_HEADERS = [
 	{ id: "areaDescription", title: "AREA_DESCRIPTION" },
 	{ id: "additionalInformation", title: "ADDITIONAL_INFORMATION" },
 	{ id: "priceAndDetailInformation", title: "PRICE_AND_DETAIL_INFORMATION" },
+];
+
+/** CSV column headers for WillhabenHunterJobsItem export. */
+const JOBS_CSV_HEADERS = [
+	{ id: "id", title: "ID" },
+	{ id: "title", title: "TITLE" },
+	{ id: "price", title: "PRICE" },
+	{ id: "url", title: "URL" },
+	{ id: "description", title: "DESCRIPTION" },
+	{ id: "attributes", title: "ATTRIBUTES" },
+	{ id: "company", title: "COMPANY" },
+	{ id: "location", title: "LOCATION" },
+	{ id: "employmentType", title: "EMPLOYMENT_TYPE" },
+	{ id: "payment", title: "PAYMENT" },
+	{ id: "creationDate", title: "CREATION_DATE" },
+	{ id: "firstPublishDate", title: "FIRST_PUBLISH_DATE" },
+	{ id: "isTopJob", title: "IS_TOP_JOB" },
+	{ id: "isOverpay", title: "IS_OVERPAY" },
 ];
 
 /**
@@ -102,6 +124,42 @@ export class WillhabenHunterCsvExporter {
 	 */
 	public static toImmoConsoleString(items: WillhabenHunterImmoItem[]): string {
 		const stringifier = createObjectCsvStringifier({ header: IMMO_CSV_HEADERS });
+		const header = stringifier.getHeaderString() ?? "";
+		const records = stringifier.stringifyRecords(items);
+		return header + records;
+	}
+
+	/**
+	 * Exports an array of jobs items to a CSV file.
+	 *
+	 * @param items - The array of jobs items to export.
+	 * @param outputPath - The path to the destination CSV file.
+	 */
+	public static async exportJobsToFile(
+		items: WillhabenHunterJobsItem[],
+		outputPath: string,
+	): Promise<void> {
+		const dir = path.dirname(outputPath);
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir, { recursive: true });
+		}
+
+		const csvWriter = createObjectCsvWriter({
+			path: outputPath,
+			header: JOBS_CSV_HEADERS,
+		});
+
+		await csvWriter.writeRecords(items);
+	}
+
+	/**
+	 * Serializes an array of jobs items to a CSV string for console output.
+	 *
+	 * @param items - The array of jobs items to serialize.
+	 * @returns The formatted CSV string including headers.
+	 */
+	public static toJobsConsoleString(items: WillhabenHunterJobsItem[]): string {
+		const stringifier = createObjectCsvStringifier({ header: JOBS_CSV_HEADERS });
 		const header = stringifier.getHeaderString() ?? "";
 		const records = stringifier.stringifyRecords(items);
 		return header + records;

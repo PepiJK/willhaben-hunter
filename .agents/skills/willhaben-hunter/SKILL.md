@@ -17,12 +17,16 @@ When executing the CLI as a background task (e.g., via `run_command`), **you mus
 
 Do not run the tool using just `npm start` because `npm` injects its own startup banner into `stdout`, which breaks JSON output and `jq` parsers. Always append `-s --` to silence npm and pass arguments.
 
-- **If developing locally:** `npm start -s -- marketplace ...` / `npm start -s -- immo ...`
-- **If globally installed:** `willhaben-hunter marketplace ...` / `willhaben-hunter immo ...`
+- **If developing locally:** `npm start -s -- marketplace ...` / `npm start -s -- immo ...` / `npm start -s -- jobs ...`
+- **If globally installed:** `willhaben-hunter marketplace ...` / `willhaben-hunter immo ...` / `willhaben-hunter jobs ...`
 
 ### 3. Save Output to Files for Large Results
 
 If the query is expected to return more than a few results, use the `-o <path>` option to output the payload directly to a temporary JSON or CSV file (e.g., `-o output_temp.json`). Reading the file with a file-viewer tool avoids filling the conversation context with large stdout text.
+
+### 4. Do NOT use --limit or -l flag
+
+This limits results. When the user runs a query he usually wants to receive everything. Just keep in mind this will take the cli a longer time to complete the request.
 
 ---
 
@@ -49,7 +53,7 @@ npm start -s -- marketplace [options]
 - **`--wien-districts <districts...>`**: List of Vienna district numbers (1-23).
 - **`--price-max <number>`** / **`--price-min <number>`**: Price boundaries.
 - **`-l, --limit <number>`**: Max items to fetch.
-- **`-s, --sort <order>`**: Sort order (`relevance`, `newest`, `price-asc`, `price-desc`).
+- **`-s, --sort <order>`**: Sort order (`relevanz`, `neueste`, `preis-aufsteigend`, `preis-absteigend`).
 - **`-f, --format <json|csv>`**: Output format (default is `json`).
 - **`-o, --output <path>`**: File path to write the output to.
 - **`--skip-details`**: Skip fetching item detail pages (faster, no description/attributes).
@@ -89,6 +93,29 @@ npm start -s -- immo [options]
 
 ---
 
+### `jobs` Command — Job listings
+
+```bash
+npm start -s -- jobs [options]
+```
+
+#### Key Options
+
+- **`-q, --query <string>`**: Search keyword (e.g., `-q "software developer"`). **Required** in non-interactive mode.
+- **`--employment-type <types...>`**: e.g., `vollzeit`, `teilzeit`.
+- **`--position <positions...>`**: e.g., `mitarbeiter:in`, `leitung/management`.
+- **`-a, --area <areas...>`**: Areas/states (e.g., `wien`).
+- **`--company-type <types...>`**: `personalberatung` or `direkter_arbeitgeber`.
+- **`--time-limit <limit>`**: Time limit (`letzte_24_stunden`, etc.).
+- **`-l, --limit <number>`**: Max items to fetch.
+- **`-f, --format <json|csv>`**: Output format (default is `json`).
+- **`-o, --output <path>`**: File path to write the output to.
+- **`--non-interactive`**: Prevents terminal prompting and fails if required parameters are missing.
+- **`--quiet`**: Suppresses summary statistics.
+- **`--fail-on-empty`**: Exit with code 1 when no results are found.
+
+---
+
 ## Example Usage
 
 ### Marketplace: Scrape and Export to CSV
@@ -103,10 +130,10 @@ npm start -s -- marketplace -q "laufband" -a wien --price-max 250 -f csv -o outp
 npm start -s -- marketplace -q "sofa" -l 5 --non-interactive | jq '.[].title'
 ```
 
-### Immo: Search for Mietwohnungen in Wien
+### Jobs: Search for React Developer in Wien
 
 ```bash
-npm start -s -- immo --type wohnung-mieten -a wien --price-max 1200 --rooms 2 --non-interactive
+npm start -s -- jobs -q "React Developer" --employment-type vollzeit -a wien -f json -o ./jobs.json --non-interactive
 ```
 
 ### Immo: Export Kaufwohnungen to CSV with all details

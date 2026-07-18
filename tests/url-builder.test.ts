@@ -61,13 +61,16 @@ describe("Marketplace URL Builder Suite", () => {
 
 	it("should include sort parameter when specified", () => {
 		const scraper = new WillhabenHunterMarketplaceScraper();
-		const url = scraper.buildUrl({ query: "sofa", sort: WillhabenHunterSortOrder.PRICE_ASC });
+		const url = scraper.buildUrl({
+			query: "sofa",
+			sort: WillhabenHunterSortOrder.PREIS_AUFSTEIGEND,
+		});
 		expect(url).toContain("sort=2");
 	});
 
 	it("should not include sort parameter for relevance (default)", () => {
 		const scraper = new WillhabenHunterMarketplaceScraper();
-		const url = scraper.buildUrl({ query: "sofa", sort: WillhabenHunterSortOrder.RELEVANCE });
+		const url = scraper.buildUrl({ query: "sofa", sort: WillhabenHunterSortOrder.RELEVANZ });
 		expect(url).not.toContain("sort=");
 	});
 

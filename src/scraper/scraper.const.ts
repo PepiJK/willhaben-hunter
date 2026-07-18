@@ -55,19 +55,19 @@ export const WILLHABEN_HUNTER_AREA_ID_MAP: Record<WillhabenHunterArea, number> =
  * Supported sort orders for search results.
  */
 export enum WillhabenHunterSortOrder {
-	RELEVANCE = "relevance",
-	NEWEST = "newest",
-	PRICE_ASC = "price-asc",
-	PRICE_DESC = "price-desc",
+	RELEVANZ = "relevanz",
+	NEUESTE = "neueste",
+	PREIS_AUFSTEIGEND = "preis-aufsteigend",
+	PREIS_ABSTEIGEND = "preis-absteigend",
 }
 
 /** Maps SortOrder values to willhaben URL sort parameter values. */
 export const WILLHABEN_HUNTER_SORT_PARAM_MAP: Record<WillhabenHunterSortOrder, string | undefined> =
 	{
-		[WillhabenHunterSortOrder.RELEVANCE]: undefined,
-		[WillhabenHunterSortOrder.NEWEST]: "1",
-		[WillhabenHunterSortOrder.PRICE_ASC]: "2",
-		[WillhabenHunterSortOrder.PRICE_DESC]: "3",
+		[WillhabenHunterSortOrder.RELEVANZ]: undefined,
+		[WillhabenHunterSortOrder.NEUESTE]: "1",
+		[WillhabenHunterSortOrder.PREIS_AUFSTEIGEND]: "2",
+		[WillhabenHunterSortOrder.PREIS_ABSTEIGEND]: "3",
 	};
 
 /** Maps district numbers (1–23) to WillhabenHunterViennaDistrict enum values. */
@@ -127,4 +127,84 @@ export const WILLHABEN_HUNTER_IMMO_ROOMS_BUCKET_MAP: Record<number, string> = {
 	3: "3X3",
 	4: "4X4",
 	5: "5X5",
+};
+
+/**
+ * Jobs-specific Enums
+ */
+
+export enum WillhabenHunterJobsCompanyType {
+	PERSONALBERATUNG = "personalberatung",
+	DIREKTER_ARBEITGEBER = "direkter_arbeitgeber",
+}
+
+export const WILLHABEN_HUNTER_JOBS_COMPANY_TYPE_MAP: Record<
+	WillhabenHunterJobsCompanyType,
+	string
+> = {
+	[WillhabenHunterJobsCompanyType.PERSONALBERATUNG]: "agency",
+	[WillhabenHunterJobsCompanyType.DIREKTER_ARBEITGEBER]: "direct_employer",
+};
+
+export enum WillhabenHunterJobsTimeLimit {
+	ALLE = "alle",
+	LETZTE_24_STUNDEN = "letzte_24_stunden",
+	LETZTE_72_STUNDEN = "letzte_72_stunden",
+	LETZTE_WOCHE = "letzte_woche",
+}
+
+export const WILLHABEN_HUNTER_JOBS_TIME_LIMIT_MAP: Record<WillhabenHunterJobsTimeLimit, string> = {
+	[WillhabenHunterJobsTimeLimit.ALLE]: "all",
+	[WillhabenHunterJobsTimeLimit.LETZTE_24_STUNDEN]: "last_24_hours",
+	[WillhabenHunterJobsTimeLimit.LETZTE_72_STUNDEN]: "last_72_hours",
+	[WillhabenHunterJobsTimeLimit.LETZTE_WOCHE]: "last_week",
+};
+
+export enum WillhabenHunterJobsEmploymentType {
+	VOLLZEIT = "vollzeit",
+	TEILZEIT = "teilzeit",
+	FREIBERUFLICH = "freiberuflich",
+	GERINGFUEGIG = "geringfügig",
+}
+
+export const WILLHABEN_HUNTER_JOBS_EMPLOYMENT_TYPE_MAP: Record<
+	WillhabenHunterJobsEmploymentType,
+	string
+> = {
+	[WillhabenHunterJobsEmploymentType.VOLLZEIT]: "110",
+	[WillhabenHunterJobsEmploymentType.TEILZEIT]: "113",
+	[WillhabenHunterJobsEmploymentType.FREIBERUFLICH]: "109",
+	[WillhabenHunterJobsEmploymentType.GERINGFUEGIG]: "11796",
+};
+
+export enum WillhabenHunterJobsPosition {
+	GRUPPEN_TEAMLEITUNG = "gruppen-/teamleitung",
+	LEHRE = "lehre",
+	LEITUNG_MANAGEMENT = "leitung/management",
+	MITARBEITER_IN = "mitarbeiter:in",
+	PRAKTIKUM = "praktikum",
+	PROJEKTMANAGEMENT = "projektmanagement",
+	TRAINEESHIP = "traineeship",
+}
+
+export const WILLHABEN_HUNTER_JOBS_POSITION_MAP: Record<WillhabenHunterJobsPosition, string> = {
+	[WillhabenHunterJobsPosition.GRUPPEN_TEAMLEITUNG]: "13540",
+	[WillhabenHunterJobsPosition.LEHRE]: "13541",
+	[WillhabenHunterJobsPosition.LEITUNG_MANAGEMENT]: "13539",
+	[WillhabenHunterJobsPosition.MITARBEITER_IN]: "13542",
+	[WillhabenHunterJobsPosition.PRAKTIKUM]: "13543",
+	[WillhabenHunterJobsPosition.PROJEKTMANAGEMENT]: "13544",
+	[WillhabenHunterJobsPosition.TRAINEESHIP]: "28428",
+};
+
+export const WILLHABEN_HUNTER_JOBS_REGION_ID_MAP: Record<WillhabenHunterArea, string> = {
+	[WillhabenHunterArea.BURGENLAND]: "13553",
+	[WillhabenHunterArea.KAERNTEN]: "13602",
+	[WillhabenHunterArea.NIEDEROESTERREICH]: "13677",
+	[WillhabenHunterArea.OBEROESTERREICH]: "13859",
+	[WillhabenHunterArea.SALZBURG]: "14096",
+	[WillhabenHunterArea.STEIERMARK]: "13783",
+	[WillhabenHunterArea.TIROL]: "14366",
+	[WillhabenHunterArea.VORARLBERG]: "14445",
+	[WillhabenHunterArea.WIEN]: "14486",
 };

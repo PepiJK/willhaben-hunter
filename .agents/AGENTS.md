@@ -17,13 +17,15 @@
 
 - **Immo**: Read `docs/immo.md` for real estate structure, filters, and scraping logic.
 - **Marketplace**: Read `docs/marketplace.md` for marketplace search and scraping logic.
-- _Always consult these files before implementing scraping logic or adding filters._
+- **Jobs**: Read `docs/jobs.md` for jobs search and scraping logic.
+- _You MUST always consult these files before implementing scraping logic or adding filters._
 
 ### Architecture & CLI
 
 - API: src/index.ts (WillhabenHunterMarketplaceScraper, WillhabenHunterImmoScraper)
 - CLI: src/cli.ts (subcommands: marketplace, immo)
 - Output: Pure data to stdout. UI/Logs/Errors to stderr.
+- Parameter Values: All CLI parameter values MUST be in German, exactly like the value they have on willhaben.
 
 ### Style
 
@@ -32,7 +34,7 @@
 - Constants: SCREAMING_SNAKE_CASE
 - Exports: Prefix with WillhabenHunter
 - Private members: Prefix with \_
-- Structure: Public first, then private. Use //#region / //#endregion.
+- Structure: Public first, then private. Use //#region //#endregion.
 - Docs: English /\*\* \*/ JSDoc for public API.
 
 ### Scraping
@@ -43,18 +45,12 @@
 
 ### Testing
 
-- Workflow: TDD, write tests first than implement.
+- Workflow: MUST use TDD, write tests first than implement.
 - Framework: vitest
-- Location: tests/\*.test.ts
+- Location: tests/*.test.ts
 - Coverage: >= 80%. Run npm run test (generates badges).
+- Clean Output: Silently swallow commander's internal stderr/stdout output during CLI tests (e.g., `program.configureOutput({ writeOut: () => {}, writeErr: () => {} })`) to prevent terminal spam.
 
-### Verification
+### REQUIRED VERIFICATION
 
-Run after changes:
-
-- npm run format
-- npm run lint
-- npm run test
-- npm run build
-- npm start -s -- marketplace -q "iphone" --limit 1 --fail-on-empty --non-interactive
-- npm start -s -- immo --type wohnung-mieten -a wien --limit 1 --fail-on-empty --non-interactive
+Before you finalize any task, you **MUST** read `docs/definition-of-done.md`. You are strictly forbidden from considering a task complete until every item in that checklist (including documentation updates) has been addressed.

@@ -5,10 +5,13 @@ import { WillhabenHunterArea, WillhabenHunterViennaDistrict } from "../scraper/s
 //#region Shared prompt helpers
 
 /** Prompts for a required search query (with validation). */
-export async function willhabenHunterPromptRequiredQuery(current?: string): Promise<string> {
+export async function willhabenHunterPromptRequiredQuery(
+	current?: string,
+	message: string = "Enter the item to search for:",
+): Promise<string> {
 	if (current) return current;
 	return input({
-		message: "Enter the item to search for:",
+		message,
 		validate: (val: string) => val.trim().length > 0 || "Search query is required",
 	});
 }

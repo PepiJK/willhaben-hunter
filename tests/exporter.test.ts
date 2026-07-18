@@ -87,6 +87,51 @@ describe("WillhabenHunterCsvExporter", () => {
 		await WillhabenHunterCsvExporter.exportImmoToFile([], "test-immo.csv");
 		expect(mkdirSpy).not.toHaveBeenCalled();
 	});
+
+	it("should export jobs items to a csv file without throwing errors", async () => {
+		await expect(
+			WillhabenHunterCsvExporter.exportJobsToFile(
+				[
+					{
+						id: "2001",
+						title: "Test Job",
+						price: "",
+						url: "https://example.com/job",
+						company: "Tech Corp",
+						location: "Wien",
+						employmentType: "Vollzeit",
+						payment: "3000",
+					},
+				],
+				"test-jobs.csv",
+			),
+		).resolves.toBeUndefined();
+	});
+
+	it("should return a CSV string for jobs console output", () => {
+		const result = WillhabenHunterCsvExporter.toJobsConsoleString([
+			{
+				id: "2001",
+				title: "Test Job",
+				price: "",
+				url: "https://example.com/job",
+				company: "Tech Corp",
+				location: "Wien",
+				employmentType: "Vollzeit",
+				payment: "3000",
+			},
+		]);
+		expect(result).toContain("COMPANY");
+		expect(result).toContain("EMPLOYMENT_TYPE");
+	});
+
+	it("should not create dir if it already exists (jobs)", async () => {
+		const fs = await import("fs");
+		vi.mocked(fs.existsSync).mockReturnValueOnce(true);
+		const mkdirSpy = vi.spyOn(fs, "mkdirSync");
+		await WillhabenHunterCsvExporter.exportJobsToFile([], "test-jobs.csv");
+		expect(mkdirSpy).not.toHaveBeenCalled();
+	});
 });
 
 describe("WillhabenHunterJsonExporter", () => {
@@ -237,6 +282,75 @@ describe("WillhabenHunterExporter immo facade", () => {
 			return true;
 		});
 		const result = await WillhabenHunterExporter.exportImmo(sampleImmoItems, {
+			format: "json",
+		});
+		expect(writeSpy).toHaveBeenCalled();
+		const output = writeSpy.mock.calls[0]![0] as string;
+		expect(JSON.parse(output)).toHaveLength(1);
+		expect(result).toBeUndefined();
+		writeSpy.mockRestore();
+	});
+});
+
+describe("WillhabenHunterExporter jobs facade", () => {
+	const sampleJobsItems = [
+		{
+			id: "2001",
+			title: "Developer",
+			price: "",
+			url: "https://example.com",
+			company: "ACME",
+			location: "Wien",
+		},
+	];
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("should route to jobs CSV file export when format is csv and outputPath given", async () => {
+		const spy = vi
+			.spyOn(WillhabenHunterCsvExporter, "exportJobsToFile")
+			.mockResolvedValue(undefined);
+		const result = await WillhabenHunterExporter.exportJobs(sampleJobsItems, {
+			format: "csv",
+			outputPath: "output/jobs.csv",
+		});
+		expect(spy).toHaveBeenCalledWith(sampleJobsItems, "output/jobs.csv");
+		expect(result).toBe("output/jobs.csv");
+	});
+
+	it("should route to JSON file export for jobs when format is json", async () => {
+		const spy = vi
+			.spyOn(WillhabenHunterJsonExporter, "exportToFile")
+			.mockResolvedValue(undefined);
+		const result = await WillhabenHunterExporter.exportJobs(sampleJobsItems, {
+			format: "json",
+			outputPath: "output/jobs.json",
+		});
+		expect(spy).toHaveBeenCalledWith(sampleJobsItems, "output/jobs.json");
+		expect(result).toBe("output/jobs.json");
+	});
+
+	it("should print jobs CSV to stdout when no outputPath", async () => {
+		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk, cb) => {
+			if (typeof cb === "function") cb();
+			return true;
+		});
+		const result = await WillhabenHunterExporter.exportJobs(sampleJobsItems, {
+			format: "csv",
+		});
+		expect(writeSpy).toHaveBeenCalled();
+		expect(result).toBeUndefined();
+		writeSpy.mockRestore();
+	});
+
+	it("should print jobs JSON to stdout when no outputPath", async () => {
+		const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation((chunk, cb) => {
+			if (typeof cb === "function") cb();
+			return true;
+		});
+		const result = await WillhabenHunterExporter.exportJobs(sampleJobsItems, {
 			format: "json",
 		});
 		expect(writeSpy).toHaveBeenCalled();

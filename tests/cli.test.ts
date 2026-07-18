@@ -233,14 +233,14 @@ describe("WillhabenHunterCli - Marketplace Interactive Prompts & Inputs", () => 
 
 		await app._executeMarketplaceAction({
 			query: "monitor",
-			sort: WillhabenHunterSortOrder.PRICE_ASC,
+			sort: WillhabenHunterSortOrder.PREIS_AUFSTEIGEND,
 			skipDetails: true,
 		});
 
 		expect(app._runMarketplaceScraperAndExport).toHaveBeenCalledWith(
 			expect.objectContaining({
 				query: "monitor",
-				sort: WillhabenHunterSortOrder.PRICE_ASC,
+				sort: WillhabenHunterSortOrder.PREIS_AUFSTEIGEND,
 				skipDetails: true,
 			}),
 			expect.any(Object),

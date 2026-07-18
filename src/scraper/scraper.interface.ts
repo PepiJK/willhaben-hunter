@@ -1,6 +1,10 @@
 import {
 	WillhabenHunterArea,
 	WillhabenHunterImmoType,
+	WillhabenHunterJobsEmploymentType,
+	WillhabenHunterJobsPosition,
+	WillhabenHunterJobsCompanyType,
+	WillhabenHunterJobsTimeLimit,
 	WillhabenHunterSortOrder,
 	WillhabenHunterViennaDistrict,
 } from "./scraper.const";
@@ -11,7 +15,7 @@ import {
 export interface WillhabenHunterItem {
 	id: string;
 	title: string;
-	price: string;
+	price?: string;
 	url: string;
 	description?: string;
 	attributes?: string;
@@ -66,6 +70,36 @@ export interface WillhabenHunterImmoScrapeOptions {
 	sizeMax?: number;
 	area?: WillhabenHunterArea[];
 	wienDistricts?: WillhabenHunterViennaDistrict[];
+	skipDetails?: boolean;
+	onProgress?: WillhabenHunterProgressCallback;
+}
+
+/**
+ * Interface representing a scraped job listing from willhaben Jobs.
+ */
+export interface WillhabenHunterJobsItem extends WillhabenHunterItem {
+	company?: string;
+	location?: string;
+	employmentType?: string;
+	creationDate?: string;
+	firstPublishDate?: string;
+	isTopJob?: boolean;
+	isOverpay?: boolean;
+	payment?: string;
+}
+
+/**
+ * Options for scraping willhaben Jobs.
+ */
+export interface WillhabenHunterJobsScrapeOptions {
+	query?: string;
+	limit?: number;
+	employmentType?: WillhabenHunterJobsEmploymentType[];
+	position?: WillhabenHunterJobsPosition[];
+	area?: WillhabenHunterArea[]; // Maps to WillhabenHunterJobsRegion
+	wienDistricts?: WillhabenHunterViennaDistrict[];
+	companyType?: WillhabenHunterJobsCompanyType[];
+	timeLimit?: WillhabenHunterJobsTimeLimit;
 	skipDetails?: boolean;
 	onProgress?: WillhabenHunterProgressCallback;
 }

@@ -1,4 +1,8 @@
-import { WillhabenHunterImmoItem, WillhabenHunterItem } from "../scraper/scraper.interface";
+import {
+	WillhabenHunterImmoItem,
+	WillhabenHunterItem,
+	WillhabenHunterJobsItem,
+} from "../scraper/scraper.interface";
 import { WillhabenHunterCsvExporter } from "./csv-exporter";
 import { WillhabenHunterExportOptions } from "./exporter.interface";
 import { WillhabenHunterJsonExporter } from "./json-exporter";
@@ -47,6 +51,27 @@ export class WillhabenHunterExporter {
 			return WillhabenHunterExporter._exportImmoToFile(items, options);
 		}
 		return WillhabenHunterExporter._exportImmoToConsole(items, options);
+	}
+
+	/**
+	 * Exports jobs items based on the given options.
+	 * Uses jobs-specific CSV columns when exporting to CSV.
+	 *
+	 * When `outputPath` is specified, writes to the file and returns the resolved path.
+	 * Otherwise, prints to stdout and returns `undefined`.
+	 *
+	 * @param items - The scraped jobs items to export.
+	 * @param options - The format and destination options.
+	 * @returns The resolved output file path, or `undefined` if printed to console.
+	 */
+	public static async exportJobs(
+		items: WillhabenHunterJobsItem[],
+		options: WillhabenHunterExportOptions,
+	): Promise<string | undefined> {
+		if (options.outputPath) {
+			return WillhabenHunterExporter._exportJobsToFile(items, options);
+		}
+		return WillhabenHunterExporter._exportJobsToConsole(items, options);
 	}
 
 	private static async _exportToFile(
@@ -103,6 +128,38 @@ export class WillhabenHunterExporter {
 		const output =
 			options.format === "csv"
 				? WillhabenHunterCsvExporter.toImmoConsoleString(items)
+				: WillhabenHunterJsonExporter.toConsoleString(items);
+
+		return new Promise((resolve, reject) => {
+			process.stdout.write(output + "\n", (err) => {
+				if (err) reject(err);
+				else resolve(undefined);
+			});
+		});
+	}
+
+	private static async _exportJobsToFile(
+		items: WillhabenHunterJobsItem[],
+		options: WillhabenHunterExportOptions,
+	): Promise<string> {
+		const outputPath = options.outputPath!;
+
+		if (options.format === "csv") {
+			await WillhabenHunterCsvExporter.exportJobsToFile(items, outputPath);
+		} else {
+			await WillhabenHunterJsonExporter.exportToFile(items, outputPath);
+		}
+
+		return outputPath;
+	}
+
+	private static _exportJobsToConsole(
+		items: WillhabenHunterJobsItem[],
+		options: WillhabenHunterExportOptions,
+	): Promise<undefined> {
+		const output =
+			options.format === "csv"
+				? WillhabenHunterCsvExporter.toJobsConsoleString(items)
 				: WillhabenHunterJsonExporter.toConsoleString(items);
 
 		return new Promise((resolve, reject) => {

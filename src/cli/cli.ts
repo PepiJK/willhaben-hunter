@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { WillhabenHunterMarketplaceCli } from "./marketplace-cli";
 import { WillhabenHunterImmoCli } from "./immo-cli";
+import { WillhabenHunterJobsCli } from "./jobs-cli";
 
 /**
  * Main application class handling the CLI interface and orchestrating the scraping process.
@@ -9,11 +10,13 @@ export class WillhabenHunterCli {
 	private _program: Command;
 	private _marketplaceCli: WillhabenHunterMarketplaceCli;
 	private _immoCli: WillhabenHunterImmoCli;
+	private _jobsCli: WillhabenHunterJobsCli;
 
 	constructor() {
 		this._program = new Command();
 		this._marketplaceCli = new WillhabenHunterMarketplaceCli();
 		this._immoCli = new WillhabenHunterImmoCli();
+		this._jobsCli = new WillhabenHunterJobsCli();
 	}
 
 	/**
@@ -33,9 +36,10 @@ export class WillhabenHunterCli {
 		this._program
 			.name("willhaben-hunter")
 			.description("A CLI to scrape items from willhaben.at")
-			.version("1.0.0");
+			.version("1.0.4");
 
 		this._marketplaceCli.setupCommand(this._program);
 		this._immoCli.setupCommand(this._program);
+		this._jobsCli.setupCommand(this._program);
 	}
 }

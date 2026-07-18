@@ -4,14 +4,14 @@
 [![Scraper Monitor](https://github.com/PepiJK/willhaben-hunter/actions/workflows/scraper-monitor.yml/badge.svg)](https://github.com/PepiJK/willhaben-hunter/actions/workflows/scraper-monitor.yml)
 ![Coverage](https://raw.githubusercontent.com/PepiJK/willhaben-hunter/main/badges/coverage.svg)
 
-A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhaben.at) — supporting both the **marketplace** (Marktplatz) and **real-estate** (Immobilien) sections.
+A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhaben.at) — supporting the **marketplace** (Marktplatz), **real-estate** (Immobilien) **jobs** (Stellenanzeigen) sections.
 
 - **As a CLI tool**, it outputs data as JSON (default) or CSV, with strict `stdout`/`stderr` separation for easy piping, LLM analysis, and automation.
 - **As an NPM library**, you can import the core scraping API directly into your Node.js backend to fetch and parse items programmatically.
 
 ## Features
 
-- **Two scraping modes** — `marketplace` for second-hand goods, `immo` for real-estate listings.
+- **Three scraping modes** — `marketplace` for second-hand goods, `immo` for real-estate listings, and `jobs` for job listings.
 - **Interactive Mode** — Beautiful prompts (Inquirer) fill in any missing search parameters.
 - **Non-Interactive Mode** — Supply all arguments up front and add `--non-interactive` for fully automated runs.
 - **Stealth Scraping** — Uses `playwright-extra` with the `puppeteer-extra-plugin-stealth` plugin to bypass Willhaben's bot protection.
@@ -22,7 +22,7 @@ A Node.js/TypeScript CLI scraper and library for [willhaben.at](https://willhabe
 
 ## Prerequisites
 
-- Node.js (v22+ recommended)
+- Node.js (lts recommended)
 - npm
 
 ## Installation
@@ -61,6 +61,16 @@ willhaben-hunter immo
 willhaben-hunter immo --type wohnung-mieten --price-max 1200 --rooms 2 -a wien --non-interactive
 ```
 
+### Jobs
+
+```bash
+# Interactive — prompts for query
+willhaben-hunter jobs
+
+# Non-interactive — requires query
+willhaben-hunter jobs -q "Frontend Developer" --employment-type vollzeit -a wien --limit 20 --non-interactive
+```
+
 ---
 
 ## `marketplace` Command Options
@@ -75,11 +85,32 @@ willhaben-hunter immo --type wohnung-mieten --price-max 1200 --rooms 2 -a wien -
 | `--limit <number>`           | `-l`  | Maximum number of items to return.                                                                                                                     |
 | `--format <type>`            | `-f`  | Output format: `json` or `csv`. Default: `json`.                                                                                                       |
 | `--output <path>`            | `-o`  | Write output to a file instead of `stdout`.                                                                                                            |
-| `--sort <order>`             | `-s`  | Sort order: `relevance`, `newest`, `price-asc`, `price-desc`.                                                                                          |
+| `--sort <order>`             | `-s`  | Sort order: `relevanz`, `neueste`, `preis-aufsteigend`, `preis-absteigend`.                                                                            |
 | `--skip-details`             |       | Skip fetching individual item detail pages (much faster, but `description` and `attributes` will be empty).                                            |
 | `--quiet`                    |       | Suppress the summary block on `stderr`. Only the data payload is printed.                                                                              |
 | `--fail-on-empty`            |       | Exit with code `1` when no results are found (useful for CI/monitoring scripts).                                                                       |
 | `--non-interactive`          |       | Disable interactive prompts. The CLI will error instead of prompting for missing values. **Use this flag in scripts, pipelines, and agent workflows.** |
+
+---
+
+## `jobs` Command Options
+
+| Option                         | Short | Description                                                                                                                                            |
+| ------------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--query <string>`             | `-q`  | Search query (e.g., `"software"`). **Required** in non-interactive mode.                                                                               |
+| `--employment-type <types...>` |       | Employment type (e.g., `vollzeit`, `teilzeit`).                                                                                                        |
+| `--position <positions...>`    |       | Position (e.g., `mitarbeiter:in`, `leitung/management`).                                                                                               |
+| `-a, --area <areas...>`        | `-a`  | Filter by area/state (e.g., `wien`).                                                                                                                   |
+| `--wien-districts <nums...>`   |       | Vienna district numbers (1–23). Only effective when `wien` is selected.                                                                                |
+| `--company-type <types...>`    |       | Company type (`personalberatung` or `direkter_arbeitgeber`).                                                                                           |
+| `--time-limit <limit>`         |       | Time limit filter (`alle`, `letzte_24_stunden`, `letzte_72_stunden`, `letzte_woche`).                                                                  |
+| `--limit <number>`             | `-l`  | Maximum number of items to return.                                                                                                                     |
+| `--format <type>`              | `-f`  | Output format: `json` or `csv`. Default: `json`.                                                                                                       |
+| `--output <path>`              | `-o`  | Write output to a file instead of `stdout`.                                                                                                            |
+| `--skip-details`               |       | Skip fetching individual item detail pages (much faster, but `description`, `company`, and `payment` might be incomplete).                             |
+| `--quiet`                      |       | Suppress the summary block on `stderr`. Only the data payload is printed.                                                                              |
+| `--fail-on-empty`              |       | Exit with code `1` when no results are found (useful for CI/monitoring scripts).                                                                       |
+| `--non-interactive`            |       | Disable interactive prompts. The CLI will error instead of prompting for missing values. **Use this flag in scripts, pipelines, and agent workflows.** |
 
 ---
 
@@ -131,11 +162,31 @@ Pass these values (case-insensitive) to `--area`:
 
 Extends the marketplace schema with:
 
-| Field          | Type      | Description                                                                   |
-| -------------- | --------- | ----------------------------------------------------------------------------- |
-| `rooms`        | `string?` | Number of rooms (extracted from Objektinformationen, only with detail pages). |
-| `livingArea`   | `string?` | Living area as displayed (e.g., `"75 m²"`, only with detail pages).           |
-| `propertyType` | `string?` | Property type label (e.g., `"Mietwohnung"`, only with detail pages).          |
+| Field                       | Type      | Description                                                                               |
+| --------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `rooms`                     | `string?` | Number of rooms (extracted from Objektinformationen, only with detail pages).             |
+| `livingArea`                | `string?` | Living area as displayed (e.g., `"75 m²"`, only with detail pages).                       |
+| `propertyType`              | `string?` | Property type label (e.g., `"Mietwohnung"`, only with detail pages).                      |
+| `priceInformation`          | `string?` | Additional price information as displayed (only with detail pages).                       |
+| `location`                  | `string?` | Property location address or description (only with detail pages).                        |
+| `areaDescription`           | `string?` | Area description extracted from "Lage" section (only with detail pages).                  |
+| `additionalInformation`     | `string?` | Additional details extracted from "Zusatzinformationen" section (only with detail pages). |
+| `priceAndDetailInformation` | `string?` | Details extracted from "Preis und Detailinformationen" section (only with detail pages).  |
+
+### Jobs Item
+
+Extends the marketplace schema with:
+
+| Field              | Type       | Description                              |
+| ------------------ | ---------- | ---------------------------------------- |
+| `company`          | `string?`  | The company offering the job.            |
+| `location`         | `string?`  | The job location.                        |
+| `employmentType`   | `string?`  | The employment type (e.g., "Vollzeit").  |
+| `payment`          | `string?`  | The payment/salary details.              |
+| `creationDate`     | `string?`  | When the job was created.                |
+| `firstPublishDate` | `string?`  | When the job was first published.        |
+| `isTopJob`         | `boolean?` | Whether it is marked as a Top Job.       |
+| `isOverpay`        | `boolean?` | Whether there is willingness to overpay. |
 
 ---
 
@@ -173,6 +224,12 @@ willhaben-hunter immo --type wohnung-mieten -a wien --wien-districts 6 7 8 --pri
 willhaben-hunter immo --type wohnung-kaufen -q "altbau" --rooms 3 --size-min 70 -f csv -o wohnungen.csv --non-interactive
 ```
 
+### Example: Search for React developer jobs in Vienna
+
+```bash
+willhaben-hunter jobs -q "React Developer" --employment-type vollzeit -a wien -f json -o jobs.json --non-interactive
+```
+
 ### Non-TTY Summary Output
 
 When the CLI is not running in a TTY (e.g., piped or inside a script), the summary on `stderr` switches from human-readable colored text to structured JSON:
@@ -199,18 +256,27 @@ When the CLI is not running in a TTY (e.g., piped or inside a script), the summa
 }
 ```
 
+**Jobs:**
+
+```json
+{
+	"query": "React Developer",
+	"employmentType": ["vollzeit"],
+	"area": ["wien"],
+	"resultCount": 15,
+	"format": "json",
+	"outputPath": null,
+	"durationSeconds": 4.5
+}
+```
+
 ---
 
 ## AI Agent Skill
 
-This project includes a skill definition for AI coding agents (e.g., Antigravity / Gemini agents) at [`.agents/skills/willhaben-hunter/SKILL.md`](.agents/skills/willhaben-hunter/SKILL.md).
+This project includes a skill definition for AI coding agents at [`.agents/skills/willhaben-hunter/SKILL.md`](.agents/skills/willhaben-hunter/SKILL.md).
 
-The skill teaches agents how to correctly invoke the CLI as a background task. Key rules for agents:
-
-1. **Always use `--non-interactive`** — Without it, the CLI will hang waiting for user input in non-TTY environments.
-2. **Use `npm start -s --`** — Run the built CLI (`willhaben-hunter marketplace`) or use `npm start -s -- marketplace` if working within the local source code repository. Using just `npm start` injects banners that corrupt JSON stdout, so the `-s --` is strictly required.
-3. **Use `-o <path>` for large results** — Write output to a file and read it via file tools, instead of flooding the conversation context with large `stdout` payloads.
-4. **`immo` requires `--type`** — Always provide `--type <slug>` in non-interactive mode.
+The skill teaches agents how to correctly invoke the CLI as a background task.
 
 ---
 
@@ -246,6 +312,25 @@ const results = await scraper.scrape({
 console.log(results);
 ```
 
+### Jobs Scraper
+
+```typescript
+import {
+	WillhabenHunterJobsScraper,
+	WillhabenHunterArea,
+	WillhabenHunterJobsEmploymentType,
+} from "willhaben-hunter";
+
+const scraper = new WillhabenHunterJobsScraper();
+const results = await scraper.scrape({
+	query: "Frontend Developer",
+	area: [WillhabenHunterArea.WIEN],
+	employmentType: [WillhabenHunterJobsEmploymentType.VOLLZEIT],
+	limit: 10,
+});
+console.log(results);
+```
+
 ---
 
 ## Development
@@ -253,14 +338,17 @@ console.log(results);
 The project uses TypeScript, ESLint, Prettier, and Vitest.
 
 ```bash
-# Run tests
-npm test
+# Format code
+npm run format
 
 # Run linter
 npm run lint
 
-# Format code
-npm run format
+# Run tests with coverage
+npm run test
+
+# Run build
+npm run build
 ```
 
 ---
